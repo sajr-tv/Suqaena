@@ -10,4 +10,10 @@ export const collections: Collection[] = [
   { id: 'sana', name: 'Sana Safinaz Inspired', image: require('../assets/sana.jpg'), group: 'Designer looks' },
   { id: 'elan', name: 'ÉLAN Inspired', image: require('../assets/elan.jpg'), group: 'Designer looks' },
   { id: 'asim', name: 'Asim Jofa Inspired', image: require('../assets/asim.jpg'), group: 'Designer looks' },
+  { id: 'imrozia', name: 'Imrozia Inspired', image: require('../assets/imrozia.jpg'), group: 'Designer looks' },
+  { id: 'baroque', name: 'Baroque Inspired', image: require('../assets/baroque.jpg'), group: 'Designer looks' },
+  { id: 'qalamkar', name: 'Qalamkar Inspired', image: require('../assets/qalamkar.jpg'), group: 'Designer looks' },
+  { id: 'zainab', name: 'Zainab Chottani Inspired', image: require('../assets/zainab.jpg'), group: 'Designer looks' },
+  { id: 'maryum', name: 'Maryum & Maria Inspired', image: require('../assets/maryum.jpg'), group: 'Designer looks' },
+  { id: 'hussain', name: 'Hussain Rehar Inspired', image: require('../assets/hussain.jpg'), group: 'Designer looks' },
 ];

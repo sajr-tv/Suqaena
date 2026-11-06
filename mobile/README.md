@@ -4,7 +4,9 @@ React Native / Expo app for Android and iOS. Uses the approved SUQAENA palette a
 
 ## Included
 
-- Discover screen, searchable collections and designer-inspired looks
+- Discover screen, all six categories and ten designer-inspired collections
+- Collection group filters, A–Z sorting, result counts and native sharing
+- Settings, local privacy information and confirmed preference reset
 - Collection detail screens and saved favourites persisted on device
 - Six GCC browsing regions, remembered on device (no delivery promise)
 - Shopping bag empty state explaining that ordering is unavailable
@@ -32,3 +34,9 @@ Authenticate to the project owner's Expo account, link this app with `eas init`,
 The current website is a static storefront and has no product, account, order or inventory API. Do not treat collection artwork as purchasable SKUs. Build and connect a shared server-backed catalogue with confirmed SKU images, sizes, prices, stock and availability; then customer authentication, carts, orders, payments and shipping. Add account deletion and privacy disclosures with customer accounts. Activate COD per country only after courier collection/remittance agreements are confirmed. Region selection currently changes a local preference only.
 
 Favourites contain collection IDs, not personal account data, and are local to the device. No credentials or payment data are collected. Uninstalling the app removes these preferences. All assets are bundled so the collection preview does not depend on a live network request.
+
+## Validation and device testing
+
+`npm test` checks preference recovery from corrupt values, stale IDs and invalid regions. Preference writes are queued so the latest state is saved after earlier changes. GitHub Actions runs tests, type checking and all-platform export on mobile changes.
+
+The web preview could not be reached from the connected browsers in the current workspace. Visual layout, touch interaction, native sharing, Android back navigation and persistence across real device restarts still require device QA. Exports are JavaScript/asset bundles, not signed APK/IPA installers.
