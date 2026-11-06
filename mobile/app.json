@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "SUQAENA",
+    "slug": "suqaena",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "suqaena",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.suqaena.app"
+    },
+    "android": {
+      "package": "com.suqaena.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "icon": "./assets/icon.png"
+  }
+}
