@@ -1,0 +1,9 @@
+{
+  "name": "SUQAENA Women's Clothing",
+  "short_name": "SUQAENA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#850d20",
+  "description": "SUQAENA premium women's fashion"
+}
