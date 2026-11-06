@@ -1,9 +1,18 @@
 {
-  "name": "SUQAENA Women's Clothing",
+  "name": "SUQAENA — Women's Fashion",
   "short_name": "SUQAENA",
+  "description": "Explore SUQAENA women's fashion across the GCC",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#850d20",
-  "description": "SUQAENA premium women's fashion"
+  "background_color": "#fff9f4",
+  "theme_color": "#8c0d20",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
