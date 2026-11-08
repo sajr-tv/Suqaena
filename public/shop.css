@@ -224,3 +224,7 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .dress-preview-form .dress-add,#dress-preview-form .dress-add{opacity:1;cursor:pointer;background:#79102c}
 #dress-preview-form .dress-add:hover{background:#9a1940}
 #dress-preview-form .dress-add:focus-visible{outline:3px solid #caa45c;outline-offset:3px}
+
+/* Secondary shopping bag navigation */
+.cart-continue-shopping{display:block;box-sizing:border-box;width:100%;margin-top:12px;padding:15px 18px;border:1px solid #79102c;border-radius:9px;background:#fffaf4;color:#79102c;text-align:center;text-decoration:none;font:700 16px Arial,sans-serif;transition:background .18s,color .18s}
+.cart-continue-shopping:hover,.cart-continue-shopping:focus-visible{background:#f4e8df;color:#600b22}
