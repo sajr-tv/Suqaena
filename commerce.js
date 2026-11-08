@@ -193,7 +193,7 @@ function commerce(env = process.env) {
           description: 'Traditional maroon embroidered shalwar suit with matching dupatta. Product measurements, fabric, garment authenticity and supplier availability require confirmation.',
           category: 'Ready-to-Wear',
           source: 'https://www.alibaba.com/product-detail/Women-s-Maroon-Embroidered-Traditional-Floor_10000046824214.html',
-          images: [],
+          images: ["/suqaena-maroon-embroidered-suit-main.png","/suqaena-maroon-embroidered-suit-side.png","/suqaena-maroon-embroidered-suit-detail.png"],
           retailPriceAED: 250,
           displayedSizes: ['M','L','XL'],
           wholesalePriceAED: null,
@@ -202,7 +202,7 @@ function commerce(env = process.env) {
           verificationStatus:'unverified',
           importStatus:'needs-supplier-data',
           fulfilmentStatus:'not-ready',
-          photoNote:'Customer-provided screenshot not yet hosted; do not substitute unrelated garment imagery.',
+          photoNote:'AI-generated SUQAENA model images; confirm exact supplier garment before publishing.',
           variants: []
         };
         await query(`INSERT INTO shop_products(supplier,supplier_id,data,published)
@@ -210,9 +210,11 @@ function commerce(env = process.env) {
           ON CONFLICT(supplier,supplier_id) DO UPDATE SET data =
             shop_products.data || jsonb_build_object(
               'retailPriceAED',250,
+              'images',$3::jsonb,
+              'photoNote','AI-generated SUQAENA model images; verify exact supplier garment',
               'displayedSizes',jsonb_build_array('M','L','XL'),
               'supplierResearch',$2::jsonb
-            )`,[JSON.stringify(maroonSuit),JSON.stringify(maroonSuit.supplierResearch)]);
+            )`,[JSON.stringify(maroonSuit),JSON.stringify(maroonSuit.supplierResearch),JSON.stringify(maroonSuit.images)]);
         await query(`INSERT INTO shop_products(supplier,supplier_id,data,published)
           VALUES ('alibaba','10000049892700',$1::jsonb,false)
           ON CONFLICT (supplier,supplier_id) DO UPDATE SET data =
