@@ -360,7 +360,7 @@ function commerce(env = process.env) {
           const password = get('password');
           if (get('action') === 'register') {
             const first = get('first_name').trim(), last = get('last_name').trim();
-            if (!/^[\\p{L}][\\p{L} .'-]{0,59}$/u.test(first) || !/^[\\p{L}][\\p{L} .'-]{0,59}$/u.test(last))
+            if (!/^[\p{L}][\p{L} .'-]{0,59}$/u.test(first) || !/^[\p{L}][\p{L} .'-]{0,59}$/u.test(last))
               throw invalid('Please enter your first and last name.');
             if (password !== get('confirm_password')) throw invalid('Passwords do not match.');
             if (get('terms') !== 'yes') throw invalid('Please accept the Terms and Privacy Policy.');
