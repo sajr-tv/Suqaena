@@ -76,3 +76,14 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .fashion-preview .fashion-sizes span:not(:first-child){display:inline-flex;align-items:center;justify-content:center;min-width:31px;min-height:31px;padding:5px;border:1px solid #c9a05d;border-radius:5px;background:#fff9f1;color:#6d1029}
 .fashion-preview .fashion-note{font:12px/1.5 Arial,sans-serif;color:#76535d;margin:5px 0}
 .fashion-preview .fashion-pending{font:11px/1.5 Arial,sans-serif;color:#95727b;margin:12px 0 0}
+
+/* Interactive size selection below the dress image */
+.fashion-preview .fashion-sizes{border:0;padding:0;margin:15px 0;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fashion-preview .fashion-sizes legend{font:700 13px Arial,sans-serif;color:#6d1029;margin-bottom:9px}
+.fashion-preview .fashion-sizes label{cursor:pointer;position:relative;display:inline-flex}
+.fashion-preview .fashion-sizes input{position:absolute;opacity:0;width:1px;height:1px}
+.fashion-preview .fashion-sizes label span{display:grid;place-items:center;min-width:40px;min-height:38px;padding:6px 9px;border:1px solid #d2ad6e;border-radius:7px;background:#fffaf5;color:#6d1029;font:700 14px Arial,sans-serif;transition:background .2s,color .2s,transform .2s,box-shadow .2s}
+.fashion-preview .fashion-sizes label:hover span{background:#7d0e2c;color:#fff;transform:translateY(-2px);box-shadow:0 3px 10px #7d0e2c33}
+.fashion-preview .fashion-sizes input:checked+span{background:#790c2a;color:#fff;border-color:#d7a848;box-shadow:0 0 0 2px #d7a848}
+.fashion-preview .fashion-sizes input:focus-visible+span{outline:3px solid #b9872b;outline-offset:3px}
+.fashion-cart-disabled{width:100%;padding:13px 8px;background:#74122d;color:#fff;border:1px solid #cba052;border-radius:7px;font:700 14px Arial,sans-serif;opacity:.65;cursor:not-allowed}
