@@ -278,3 +278,26 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .fashion-grid .fashion-card:hover .fashion-image img{
   transform:none;
 }
+
+
+/* Keep all Ready-to-Wear purchase actions aligned for 4–6 sizes. */
+.fashion-grid .fashion-preview .fashion-sizes{
+  display:flex;
+  flex-wrap:wrap;
+  align-content:flex-start;
+  column-gap:5px;
+  row-gap:6px;
+  min-height:94px;
+  margin-bottom:12px;
+}
+.fashion-grid .fashion-preview .fashion-sizes legend{width:100%;padding:0}
+.fashion-grid .fashion-preview .fashion-sizes label span{
+  min-width:34px;
+  min-height:38px;
+  padding:5px 6px;
+  font-size:13px;
+}
+@media(max-width:650px){
+  .fashion-grid .fashion-preview .fashion-sizes{min-height:128px;column-gap:4px;row-gap:5px}
+  .fashion-grid .fashion-preview .fashion-sizes label span{min-width:29px;min-height:34px;padding:4px 5px;font-size:12px}
+}
