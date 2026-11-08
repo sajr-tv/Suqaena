@@ -121,13 +121,17 @@ function commerce(env = process.env) {
     .update(`suqaena-admin:${admin}:${token}`).digest('hex');
   let activeLogins = 0;
 
-  function page(res, title, body, status = 200) {
+  const dressHeader = `<div class="dress-site-header"><div class="dress-brand-row"><a class="dress-brand" href="/" aria-label="SUQAENA home"><span class="dress-monogram">SQ</span><span>SUQAENA</span></a><div class="dress-header-actions"><a href="/shop" aria-label="Search dresses" title="Browse dresses">⌕ <small>Search</small></a><a href="/shop/account" aria-label="Your account and wishlist" title="Account">♡ <small>Account</small></a><a href="/shop/cart" aria-label="Shopping cart" title="Cart">♧ <small>Cart</small></a></div></div><nav class="dress-top-nav" aria-label="Dress collections"><a href="/">Home</a><a href="/shop">New Arrivals</a><a href="/shop?category=Ready-to-Wear">Ready to Wear</a><a href="/shop?category=Unstitched%202-Piece%20and%203-Piece%20Suits">Unstitched Suits</a><a href="/shop?category=Luxury%20Pret">Luxury Pret</a><a href="/shop?category=Abayas%20and%20Kaftans">Abayas &amp; Kaftans</a><a href="/shop?category=Accessories">Accessories</a></nav></div><div class="dress-service-bar"><span>✦ Delivery Across GCC</span><span>✦ Secure Checkout</span><span>✦ Delivery &amp; Returns Details at Checkout</span></div>`;
+  function dressPage(res, title, body) {
+    page(res, title, body, 200, true);
+  }
+  function page(res, title, body, status = 200, dressLayout = false) {
     res.writeHead(status, {
       'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
       'Content-Security-Policy': `default-src 'self'; img-src 'self' https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`
     });
-    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css"><header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header><main><h1>${escape(title)}</h1>${body}</main></html>`);
+    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css">${dressLayout ? dressHeader : `<header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header>`}<main class="${dressLayout ? 'dress-main' : ''}">${dressLayout ? '' : `<h1>${escape(title)}</h1>`}${body}</main></html>`);
   }
   const redirect = (res, location) => res.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }).end();
   const form = (path, body, label) => `<form method="post" action="${path}">${body}<button>${label}</button></form>`;
@@ -202,7 +206,7 @@ function commerce(env = process.env) {
           `${hero}<div class="fashion-heading"><span>THE COLLECTION</span><p>${rows.length} ${rows.length === 1 ? 'style' : 'styles'} available</p></div><section class="grid fashion-grid">${cards || empty}</section>`);
 
       } else if (path === '/shop/dress/leranath-yellow' && !post) {
-        page(res, 'Leranath Yellow Embroidered Shalwar Suit', `
+        dressPage(res, 'Leranath Yellow Embroidered Shalwar Suit', `
           <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop?category=Ready-to-Wear">Ready to Wear</a> / Leranath Yellow Suit</nav>
           <section class="dress-detail">
             <div class="dress-photo"><img src="/suqaena-leranath-yellow-suit.png" alt="Leranath yellow embroidered shalwar suit on SUQAENA model" loading="eager"><span class="dress-zoom-hint">Hover to zoom</span></div>
@@ -232,7 +236,7 @@ function commerce(env = process.env) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
         const { id, data } = row;
-        page(res, data.title, `${data.images.map(src => `<img alt="${escape(data.title)}" src="${escape(src)}">`).join('')}<p>${escape(data.description)}</p><p>${escape(data.fabric)} · ${escape(data.specifications)}</p>${form('/shop/cart', `<label>Size and color<select name="variant" required>${data.variants.map(v => `<option value="${id}.${digest(v.sku)}" ${v.quantity ? '' : 'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${v.quantity ? '' : ' · Sold out'}</option>`).join('')}</select></label>`, 'Add to cart')}`);
+        dressPage(res, data.title, `${data.images.map(src => `<img alt="${escape(data.title)}" src="${escape(src)}">`).join('')}<p>${escape(data.description)}</p><p>${escape(data.fabric)} · ${escape(data.specifications)}</p>${form('/shop/cart', `<label>Size and color<select name="variant" required>${data.variants.map(v => `<option value="${id}.${digest(v.sku)}" ${v.quantity ? '' : 'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${v.quantity ? '' : ' · Sold out'}</option>`).join('')}</select></label>`, 'Add to cart')}`);
       } else if (path === '/shop/cart') {
         if (post) {
           const key = get('variant');
