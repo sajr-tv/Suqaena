@@ -145,3 +145,8 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .dress-gallery .dress-photo:hover img,.dress-gallery .dress-photo.is-zoomed img{transform:scale(1.65)}
 .dress-gallery .dress-photo.is-zoomed{cursor:zoom-out}
 @media(max-width:760px){.dress-gallery{grid-template-columns:1fr;gap:10px}.dress-thumbnails{order:2;flex-direction:row}.dress-thumb{width:65px;height:85px}.dress-gallery .dress-photo:hover img{transform:none}.dress-gallery .dress-photo.is-zoomed img{transform:scale(1.7)}}
+
+.dress-gift-offer{display:flex;align-items:flex-start;gap:14px;margin:20px 0 24px;padding:18px;border:1px solid #d2a34c;border-radius:12px;background:linear-gradient(125deg,#fff8e8,#fff2f2);box-shadow:0 4px 16px #9c6e3214}
+.dress-gift-icon{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;background:#7c1030;border:1px solid #d5b267;color:#f5d58c;border-radius:50%;font-size:23px}
+.dress-gift-offer strong{display:block;color:#7c1030;font:700 clamp(16px,2vw,20px)/1.3 Georgia,serif}
+.dress-gift-offer p{margin:8px 0 0;color:#76514d;font:12px/1.6 Arial,sans-serif}
