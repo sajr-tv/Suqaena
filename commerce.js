@@ -298,6 +298,17 @@ function commerce(env = process.env) {
               SELECT supplier, "supplierId", data FROM jsonb_to_recordset($1::jsonb)
               AS incoming(supplier text, "supplierId" text, data jsonb)
               ON CONFLICT(supplier,supplier_id) DO UPDATE SET data=EXCLUDED.data,published=false`, [JSON.stringify(products)]);
+          } else if (action === 'edit-product') {
+            const id = get('id');
+            if (!/^\d{1,9}$/.test(id)) throw invalid('Invalid product.');
+            const row = (await query('SELECT data FROM shop_products WHERE id=$1', [id])).rows[0];
+            if (!row) throw invalid('Product not found.');
+            const title = get('title').trim();
+            const description = get('description').trim();
+            const price = Number(get('price'));
+            if (!title || title.length > 180 || description.length > 4000 || !Number.isFinite(price) || price <= 0 || price > 1000000) throw invalid('Invalid product details or price.');
+            const data = { ...row.data, title, description, variants: row.data.variants.map(v => ({...v, price})) };
+            await query('UPDATE shop_products SET data=$2 WHERE id=$1', [id, JSON.stringify(data)]);
           } else if (['publish', 'unpublish', 'remove'].includes(action)) {
             const ids = fields.getAll('id').filter(id => /^\d{1,9}$/.test(id));
             if (action === 'publish' && get('verified') !== 'yes') throw invalid('Confirm review before publication.');
