@@ -228,6 +228,21 @@ function commerce(env = process.env) {
         const [key, qty] = item.split(':');
         if (/^\d{1,9}\.[a-f0-9]{64}$/.test(key) && /^([1-9]|10)$/.test(qty)) cart.set(key, Number(qty));
       }
+      if (session && cookies.shop_pending_variant && !post) {
+        const pending = cookies.shop_pending_variant;
+        cookie(res, 'shop_pending_variant', '', 0);
+        if (/^\\d{1,9}\\.[a-f0-9]{64}$/.test(pending)) {
+          const id = Number(pending.split('.')[0]);
+          const row = (await query('SELECT data FROM shop_products WHERE id=$1 AND published', [id])).rows[0];
+          const variant = row?.data?.variants?.find(v => digest(v.sku) === pending.split('.')[1]);
+          if (variant && Number(variant.quantity) > (cart.get(pending) || 0) && (cart.get(pending) || 0) < 10 && cart.size < 30) {
+            cart.set(pending, (cart.get(pending) || 0) + 1);
+            cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
+            redirect(res, '/shop/cart');
+            return true;
+          }
+        }
+      }
       const lines = async () => {
         const ids = [...cart.keys()].map(key => Number(key.split('.')[0]));
         const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
@@ -294,6 +309,11 @@ function commerce(env = process.env) {
           if (!/^\d{1,9}\.[a-f0-9]{64}$/.test(key)) throw invalid('Invalid variant.');
           if (get('remove')) cart.delete(key);
           else {
+            if (!session) {
+              cookie(res, 'shop_pending_variant', key, 600);
+              redirect(res, '/shop/account?mode=register');
+              return true;
+            }
             const quantity = (cart.get(key) || 0) + 1;
             cart.set(key, quantity);
             const line = (await lines()).find(item => item.key === key);
@@ -345,7 +365,7 @@ function commerce(env = process.env) {
         if (session) await query('DELETE FROM shop_sessions WHERE token=$1',[digest(token)]);
         await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)',[digest(newToken),email]);
         cookie(res,'shop_session',newToken,43200);
-        redirect(res,'/shop/account');
+        redirect(res,cookies.shop_pending_variant ? '/shop/cart' : '/shop/account');
         return true;
       } else if (path === '/shop/account') {
         if (post) {
@@ -394,7 +414,7 @@ function commerce(env = process.env) {
           } finally {
             activeLogins--;
           }
-          redirect(res, path);
+          redirect(res, cookies.shop_pending_variant ? '/shop/cart' : path);
         } else if (session && url.searchParams.get('mode') !== 'register' && url.searchParams.get('mode') !== 'login') {
           const orders = (await query('SELECT id,status,tracking FROM shop_orders WHERE email=$1 ORDER BY created DESC LIMIT 100', [session.email])).rows;
           dressPage(res, 'My account', `<section class="account-shell account-luxury"><div class="account-panel account-dashboard"><div class="account-crest">SQ</div><p class="account-eyebrow">YOUR SUQAENA ACCOUNT</p><h1>Welcome to SUQAENA</h1><p class="account-subtitle">A beautiful place to manage your shopping journey.</p><p class="account-email">${escape(session.email)}</p><div class="account-dashboard-links"><a href="/shop">Explore Collection</a><a href="/shop/cart">My Shopping Bag</a>${isAdmin ? '<a href="/shop/admin">Supplier Dashboard</a>' : ''}</div><h2>My Orders</h2>${orders.length ? orders.map(order => `<div class="account-order"><strong>Order ${escape(order.id)}</strong><span>${escape(order.status)} ${escape(order.tracking || '')}</span></div>`).join('') : '<p class="account-empty">You have no orders yet. Your favourites are waiting to be discovered.</p>'}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign Out')}</div></section>`);
