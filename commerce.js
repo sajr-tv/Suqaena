@@ -231,7 +231,7 @@ function commerce(env = process.env) {
       if (session && cookies.shop_pending_variant && !post) {
         const pending = cookies.shop_pending_variant;
         cookie(res, 'shop_pending_variant', '', 0);
-        if (/^\\d{1,9}\\.[a-f0-9]{64}$/.test(pending)) {
+        if (/^\d{1,9}\.[a-f0-9]{64}$/.test(pending)) {
           const id = Number(pending.split('.')[0]);
           const row = (await query('SELECT data FROM shop_products WHERE id=$1 AND published', [id])).rows[0];
           const variant = row?.data?.variants?.find(v => digest(v.sku) === pending.split('.')[1]);
