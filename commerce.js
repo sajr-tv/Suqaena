@@ -241,7 +241,7 @@ function commerce(env = process.env) {
       const cart = new Map();
       for (const item of (cookies.shop_cart || '').split(',')) {
         const [key, qty] = item.split(':');
-        if (/^\d{1,9}\.[a-f0-9]{64}$/.test(key) && /^([1-9]|10)$/.test(qty)) cart.set(key, Number(qty));
+        if ((/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-leranath-(S|M|L|XL)$/.test(key)) && /^([1-9]|10)$/.test(qty)) cart.set(key, Number(qty));
       }
       if (session && cookies.shop_pending_variant && !post) {
         const pending = cookies.shop_pending_variant;
@@ -262,13 +262,14 @@ function commerce(env = process.env) {
       if (session) {
         const saved = (await query('SELECT items FROM shop_saved_carts WHERE email=$1',[session.email])).rows[0]?.items || {};
         for (const [key, quantity] of Object.entries(saved)) {
-          if (/^\d{1,9}\.[a-f0-9]{64}$/.test(key) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
+          if ((/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-leranath-(S|M|L|XL)$/.test(key)) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
         }
       }
+      const previewProduct = {title:'Leranath Yellow Embroidered Shalwar Suit – 3 Piece',source:'https://www.alibaba.com/product-detail/Leranath-Fashion-Yellow-Rayon-Embroidered-Indian_10000049892700.html',preview:true};
       const lines = async () => {
         const ids = [...cart.keys()].map(key => Number(key.split('.')[0]));
         const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
-        return [...cart].flatMap(([key, quantity]) => {
+        return [...cart].flatMap(([key, quantity]) => {\n          if (/^preview-leranath-(S|M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
           const [id, variantKey] = key.split('.');
           const product = products.find(row => row.id === Number(id))?.data;
           const variant = product?.variants.find(v => digest(v.sku) === variantKey);
@@ -315,8 +316,8 @@ function commerce(env = process.env) {
                 <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
               </fieldset>
               <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
-              ${session ? '<button class="dress-add" type="button" disabled title="Supplier stock verification pending">Add to Cart · Stock Confirmation Pending</button>' : '<a class="dress-add dress-add-auth" href="/shop/account?mode=register">Sign In or Create Account to Shop</a>'}
-              <p class="dress-status">This dress is a preview. Ordering opens once supplier stock and measurements are verified.</p>
+              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
+              <p class="dress-status">Save this dress to your shopping bag. Checkout opens after supplier stock and measurements are verified.</p>
               <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
               <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
               <details><summary>Size Guide</summary><p>Sizes S, M, L and XL are planned. Exact garment measurements will be published after supplier confirmation.</p></details>
@@ -330,10 +331,21 @@ function commerce(env = process.env) {
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
         const { id, data } = row;
         dressPage(res, data.title, `${data.images.map(src => `<img alt="${escape(data.title)}" src="${escape(src)}">`).join('')}<p>${escape(data.description)}</p><p>${escape(data.fabric)} · ${escape(data.specifications)}</p>${form('/shop/cart', `<label>Size and color<select name="variant" required>${data.variants.map(v => `<option value="${id}.${digest(v.sku)}" ${v.quantity ? '' : 'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${v.quantity ? '' : ' · Sold out'}</option>`).join('')}</select></label>`, 'Add to cart')}`);
+      } else if (path === '/shop/cart/preview' && post) {
+        const size = get('size');
+        const quantity = Number(get('quantity'));
+        if (!['S','M','L','XL'].includes(size) || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw invalid('Choose a valid size and quantity.');
+        if (!session) { redirect(res, '/shop/account?mode=register'); return true; }
+        const key = 'preview-leranath-' + size;
+        cart.set(key, Math.min(10, (cart.get(key) || 0) + quantity));
+        if (cart.size > 30) throw invalid('Shopping bag limit reached.');
+        cookie(res, 'shop_cart', [...cart].map(([k,n]) => k+':'+n).join(','), 604800);
+        await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
+        redirect(res, '/shop/cart');
       } else if (path === '/shop/cart') {
         if (post) {
           const key = get('variant');
-          if (!/^\d{1,9}\.[a-f0-9]{64}$/.test(key)) throw invalid('Invalid variant.');
+          if (!(/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-leranath-(S|M|L|XL)$/.test(key))) throw invalid('Invalid variant.');
           if (get('remove')) cart.delete(key);
           else {
             if (!session) {
