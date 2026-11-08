@@ -477,17 +477,20 @@ function commerce(env = process.env) {
         if (post) {
           const key = get('variant');
           if (!(/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-(leranath-(S|M|L|XL)|maroon-(M|L|XL)|lemon-(M|L|XL|XXL)|cream-(S|M|L|XL|XXL)|blue-(S|M|L|XL|XXL)|purple-(M|L|XL|XXL|XXXL))$/.test(key))) throw invalid('Invalid variant.');
+          if (!session) { redirect(res, '/shop/account?mode=register'); return true; }
           if (get('remove')) cart.delete(key);
           else {
-            if (!session) {
-              cookie(res, 'shop_pending_variant', key, 600);
-              redirect(res, '/shop/account?mode=register');
-              return true;
-            }
-            const quantity = (cart.get(key) || 0) + 1;
-            cart.set(key, quantity);
+            const current = cart.get(key) || 0;
+            const action = get('adjust');
+            if (!['increase','decrease'].includes(action)) throw invalid('Invalid quantity action.');
+            const quantity = current + (action === 'increase' ? 1 : -1);
             const line = (await lines()).find(item => item.key === key);
-            if (!line || quantity > line.variant.quantity || quantity > 10 || cart.size > 30) throw invalid('Quantity unavailable.');
+            if (!line) throw invalid('Product unavailable.');
+            if (quantity <= 0) cart.delete(key);
+            else {
+              if (quantity > 10 || (!line.preview && quantity > line.variant.quantity)) throw invalid('Quantity unavailable.');
+              cart.set(key, quantity);
+            }
           }
           cookie(res, 'shop_cart_owner', cartOwner, 604800);
             cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
@@ -498,7 +501,7 @@ function commerce(env = process.env) {
           const subtotal = items.reduce((sum, item) => sum + item.quantity * item.variant.price, 0);
           dressPage(res, 'Shopping bag', '<section class="cart-shell"><p class="account-eyebrow">YOUR SELECTION</p><h1>Shopping Bag</h1>' +
             (items.length ? items.map(({ key, quantity, product, variant }) =>
-              `<article class="cart-line"><img class="cart-product-thumb" src="${escape(product.images?.[0] || '/suqaena-leranath-yellow-suit.png')}" alt="${escape(publicLabel(product.title))}" loading="lazy"><div><h2>${escape(publicLabel(product.title))}</h2><p>Size: ${escape(variant.size)} · Colour: ${escape(variant.color)}</p><p>Quantity: ${quantity} · ${money(variant.price)} each</p></div><div><strong>${money(quantity * variant.price)}</strong>${form(path, `<input type="hidden" name="variant" value="${key}"><input type="hidden" name="remove" value="1">`, 'Remove')}</div></article>`
+              `<article class="cart-line"><img class="cart-product-thumb" src="${escape(product.images?.[0] || '/suqaena-leranath-yellow-suit.png')}" alt="${escape(publicLabel(product.title))}" loading="lazy"><div><h2>${escape(publicLabel(product.title))}</h2><p>Size: ${escape(variant.size)} · Colour: ${escape(variant.color)}</p><div class="cart-quantity-row"><span>Quantity</span><div class="cart-quantity-controls"><form method="post" action="/shop/cart"><input type="hidden" name="variant" value="${escape(key)}"><input type="hidden" name="adjust" value="decrease"><button type="submit" aria-label="Decrease quantity of ${escape(publicLabel(product.title))}">−</button></form><output aria-label="Quantity">${quantity}</output><form method="post" action="/shop/cart"><input type="hidden" name="variant" value="${escape(key)}"><input type="hidden" name="adjust" value="increase"><button type="submit" aria-label="Increase quantity of ${escape(publicLabel(product.title))}" ${quantity >= 10 ? 'disabled' : ''}>+</button></form></div><small>${money(variant.price)} each</small></div></div><div><strong>${money(quantity * variant.price)}</strong>${form(path, `<input type="hidden" name="variant" value="${escape(key)}"><input type="hidden" name="remove" value="1">`, 'Remove')}</div></article>`
             ).join('') + `<div class="cart-summary"><h2>Order Summary</h2><p>Subtotal <strong>${money(subtotal)}</strong></p><small>Free delivery. Orders are only available after supplier stock and delivery arrangements are confirmed.</small><a class="cart-checkout" href="/shop/checkout">Continue to checkout</a><a class="cart-continue-shopping" href="${escape((()=>{try{const p=decodeURIComponent(cookies.shop_return_to||'');return ['/shop/dress/leranath-yellow','/shop/dress/maroon-embroidered','/shop/dress/cream-mustard','/shop/dress/blue-floral-anarkali','/shop/dress/purple-anarkali','/shop?category=Ready-to-Wear','/shop'].includes(p)?p:'/shop?category=Ready-to-Wear'}catch{return '/shop?category=Ready-to-Wear'}})())}">Continue Shopping</a></div>` :
               '<div class="cart-empty"><h2>Your shopping bag is empty</h2><p>Discover something beautiful in our latest collection.</p><a class="cart-checkout" href="/shop">Explore collection</a></div>') + '</section>');
         }
