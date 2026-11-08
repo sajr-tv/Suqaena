@@ -651,7 +651,7 @@ function commerce(env = process.env) {
           const destinationOptions = Object.entries(destinations).map(([code,name]) =>
             `<option value="${code}"${country === code ? ' selected' : ''}>${escape(name)}</option>`).join('');
           const itemCards = items.map(({product,variant,quantity}) => {
-            const imageUrl = product.preview ? '/suqaena-leranath-yellow-suit.png' : (product.images?.[0] || '');
+            const imageUrl = product.images?.[0] || '';
             return `<div class="checkout-item">${imageUrl ? `<img src="${escape(imageUrl)}" alt="${escape(product.title)}" loading="lazy">` : '<span class="checkout-item-placeholder">SQ</span>'}<div><strong>${escape(product.title)}</strong><small>Size ${escape(variant.size)} · ${escape(variant.color)} · Qty ${quantity}</small></div><b>${money(variant.price * quantity)}</b></div>`;
           }).join('');
           const previewNotice = !stockVerified ? 'Supplier stock verification is pending. You can review your delivery details, but orders cannot be submitted yet.' : !configured ? 'Delivery charges and fulfilment must be confirmed before ordering opens.' : 'Checkout will open after final payment and courier verification.';
