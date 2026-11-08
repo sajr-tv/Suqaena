@@ -267,7 +267,7 @@ function commerce(env = process.env) {
       }
       const previewProduct = {title:'Leranath Yellow Embroidered Shalwar Suit – 3 Piece',source:'https://www.alibaba.com/product-detail/Leranath-Fashion-Yellow-Rayon-Embroidered-Indian_10000049892700.html',preview:true};
       const lines = async () => {
-        const ids = [...cart.keys()].map(key => Number(key.split('.')[0]));
+        const ids = [...cart.keys()].filter(key => /^\d{1,9}\./.test(key)).map(key => Number(key.split('.')[0]));
         const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
         return [...cart].flatMap(([key, quantity]) => {
           if (/^preview-leranath-(S|M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
