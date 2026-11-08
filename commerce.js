@@ -310,12 +310,13 @@ function commerce(env = process.env) {
           if ((/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-leranath-(S|M|L|XL)$/.test(key)) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
         }
       }
+      const maroonPreviewProduct = {title:'Maroon Embroidered Shalwar Suit with Dupatta – 3 Piece',source:'https://www.alibaba.com/product-detail/Women-s-Maroon-Embroidered-Traditional-Floor_10000046824214.html',images:['/suqaena-maroon-embroidered-suit-main.png'],preview:true};
       const previewProduct = {title:'Leranath Yellow Embroidered Shalwar Suit – 3 Piece',source:'https://www.alibaba.com/product-detail/Leranath-Fashion-Yellow-Rayon-Embroidered-Indian_10000049892700.html',preview:true};
       const lines = async () => {
         const ids = [...cart.keys()].filter(key => /^\d{1,9}\./.test(key)).map(key => Number(key.split('.')[0]));
         const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
         return [...cart].flatMap(([key, quantity]) => {
-          if (/^preview-leranath-(S|M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
+          if (/^preview-leranath-(S|M|L|XL)$/.test(key) || /^preview-maroon-(M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
           const [id, variantKey] = key.split('.');
           const product = products.find(row => row.id === Number(id))?.data;
           const variant = product?.variants.find(v => digest(v.sku) === variantKey);
@@ -389,7 +390,7 @@ function commerce(env = process.env) {
                 <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
               </fieldset>
               <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
-              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
+              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="product" value="maroon"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
               <p class="dress-status">Save this dress to your shopping bag. Checkout opens after supplier stock and measurements are verified.</p>
               <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
               <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
@@ -409,7 +410,9 @@ function commerce(env = process.env) {
         const quantity = Number(get('quantity'));
         if (!['S','M','L','XL'].includes(size) || !Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw invalid('Choose a valid size and quantity.');
         if (!session) { redirect(res, '/shop/account?mode=register'); return true; }
-        const key = 'preview-leranath-' + size;
+        const productCode = get('product') === 'maroon' ? 'maroon' : 'leranath';
+        if (productCode === 'maroon' && size === 'S') throw invalid('Choose a valid size.');
+        const key = 'preview-' + productCode + '-' + size;
         cart.set(key, Math.min(10, (cart.get(key) || 0) + quantity));
         if (cart.size > 30) throw invalid('Shopping bag limit reached.');
         cookie(res, 'shop_cart', [...cart].map(([k,n]) => k+':'+n).join(','), 604800);
