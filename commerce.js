@@ -250,7 +250,7 @@ function commerce(env = process.env) {
       if (session) {
         const saved = (await query('SELECT items FROM shop_saved_carts WHERE email=$1',[session.email])).rows[0]?.items || {};
         for (const [key, quantity] of Object.entries(saved)) {
-          if (/^\\d{1,9}\\.[a-f0-9]{64}$/.test(key) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
+          if (/^\d{1,9}\.[a-f0-9]{64}$/.test(key) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
         }
       }
       const lines = async () => {
@@ -264,6 +264,11 @@ function commerce(env = process.env) {
         });
       };
 
+      if (path === '/shop/me' && !post) {
+        res.writeHead(200, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+        res.end(JSON.stringify({signedIn:Boolean(session),initials:res.shopInitial || '',firstName:res.shopFirstName || '',cartCount:[...cart.values()].reduce((a,b)=>a+b,0)}));
+        return true;
+      }
       if (path === '/shop' && !post) {
         const category = url.searchParams.get('category') || '';
         const search = (url.searchParams.get('q') || '').slice(0, 120);
