@@ -124,7 +124,7 @@ function commerce(env = process.env) {
   function page(res, title, body, status = 200) {
     res.writeHead(status, {
       'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
-      'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
       'Content-Security-Policy': `default-src 'self'; img-src 'self' https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`
     });
     res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css"><header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header><main><h1>${escape(title)}</h1>${body}</main></html>`);
