@@ -150,3 +150,18 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .dress-gift-icon{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;background:#7c1030;border:1px solid #d5b267;color:#f5d58c;border-radius:50%;font-size:23px}
 .dress-gift-offer strong{display:block;color:#7c1030;font:700 clamp(16px,2vw,20px)/1.3 Georgia,serif}
 .dress-gift-offer p{margin:8px 0 0;color:#76514d;font:12px/1.6 Arial,sans-serif}
+
+/* Account and cart experience */
+.account-shell,.cart-shell{max-width:1060px;margin:44px auto 72px;padding:0 20px;color:#491526}
+.account-panel{max-width:470px;margin:auto;padding:34px;border:1px solid #eadcc9;border-radius:18px;background:#fffdfb;box-shadow:0 14px 42px #4010210c}
+.account-eyebrow{font:700 11px/1.5 Arial,sans-serif;letter-spacing:2.2px;color:#ad813e}
+.account-panel h1,.cart-shell h1{font:normal clamp(28px,4vw,40px)/1.2 Georgia,serif;color:#741331;margin:8px 0 12px}
+.account-subtitle,.account-switch,.account-back{font:14px/1.7 Arial,sans-serif;color:#745e62}
+.account-panel form label{display:block;margin:16px 0;font:600 13px/1.5 Arial,sans-serif}
+.account-panel input[type=email],.account-panel input[type=password],.account-panel input[type=text]{box-sizing:border-box;width:100%;margin-top:7px;padding:13px;border:1px solid #d9c9c5;border-radius:7px;background:white;color:#40212a;font:15px Arial,sans-serif}
+.account-panel .account-password-toggle{display:flex;align-items:center;gap:8px;font-weight:400}
+.account-panel form button,.cart-checkout{display:block;box-sizing:border-box;width:100%;padding:14px 20px;border:0;border-radius:7px;background:#79152f;color:white;text-align:center;text-decoration:none;font:700 14px Arial,sans-serif;cursor:pointer}
+.account-panel form button:hover,.cart-checkout:hover{background:#571022}
+.account-switch,.account-back{text-align:center}.account-switch a,.account-back a{color:#801630;text-decoration:underline}
+.cart-line{display:flex;justify-content:space-between;gap:20px;padding:23px 0;border-bottom:1px solid #eadcc9}.cart-line h2{font:normal 21px Georgia,serif}.cart-line p{font:13px/1.7 Arial,sans-serif;color:#735e63}.cart-line form button{background:none;border:0;text-decoration:underline;color:#82182e;cursor:pointer;margin-top:12px}
+.cart-summary{max-width:430px;margin:30px 0 0 auto;padding:25px;background:#fff8ee;border:1px solid #e4d1b2;border-radius:12px}.cart-summary h2,.cart-empty h2{font:normal 25px Georgia,serif;color:#741331}.cart-summary p{display:flex;justify-content:space-between}.cart-summary small{display:block;margin:15px 0;color:#735e63;line-height:1.6}.cart-empty{text-align:center;padding:70px 20px}.cart-empty .cart-checkout{max-width:260px;margin:24px auto}
