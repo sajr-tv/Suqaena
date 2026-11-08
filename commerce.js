@@ -197,10 +197,37 @@ function commerce(env = process.env) {
           return `<article class="fashion-card"><a class="fashion-image" href="/shop/product/${id}">${image(data) || '<div class="fashion-placeholder">Image coming soon</div>'}</a><div class="fashion-details"><h2><a href="/shop/product/${id}">${escape(data.title)}</a></h2><p class="fashion-price">${money(minPrice)}</p><a class="fashion-cta" href="/shop/product/${id}">View Dress</a></div></article>`;
         }).join('');
         const hero = collection ? `<section class="fashion-hero"><span class="fashion-eyebrow">SUQAENA · THE SIGNATURE EDIT</span><h1>Ready to Wear</h1><p>3-Piece Shalwar Suits</p><span class="fashion-rule"></span><div class="fashion-subtitle">Beautifully curated kameez, trousers and dupatta sets</div></section>` : '';
-        const empty = collection ? `<article class="fashion-card fashion-preview"><div class="fashion-image"><img src="/suqaena-leranath-yellow-suit.png" alt="Yellow embroidered three-piece shalwar suit on SUQAENA model" loading="lazy"></div><div class="fashion-details"><h2>Leranath Yellow Embroidered Shalwar Suit – 3 Piece</h2><p class="fashion-price">AED 75.00</p><fieldset class="fashion-sizes"><legend>Select size</legend><label><input type="radio" name="preview-size" value="S"><span>S</span></label><label><input type="radio" name="preview-size" value="M"><span>M</span></label><label><input type="radio" name="preview-size" value="L"><span>L</span></label><label><input type="radio" name="preview-size" value="XL"><span>XL</span></label></fieldset><button class="fashion-cart-disabled" type="button" disabled title="Supplier stock must be verified before ordering">Add to Cart — Coming Soon</button><p class="fashion-note">Three-piece set · Minimum order: 1</p><p class="fashion-note">Delivery charges confirmed at checkout</p><p class="fashion-pending">Preview only — stock and supplier specifications awaiting verification</p></div></article>` : '<p>No products found.</p>';
+        const empty = collection ? `<article class="fashion-card fashion-preview"><a class="fashion-image" href="/shop/dress/leranath-yellow"><img src="/suqaena-leranath-yellow-suit.png" alt="Yellow embroidered three-piece shalwar suit on SUQAENA model" loading="lazy"></a><div class="fashion-details"><h2><a href="/shop/dress/leranath-yellow">Leranath Yellow Embroidered Shalwar Suit – 3 Piece</a></h2><p class="fashion-price">AED 75.00</p><fieldset class="fashion-sizes"><legend>Select size</legend><label><input type="radio" name="preview-size" value="S"><span>S</span></label><label><input type="radio" name="preview-size" value="M"><span>M</span></label><label><input type="radio" name="preview-size" value="L"><span>L</span></label><label><input type="radio" name="preview-size" value="XL"><span>XL</span></label></fieldset><button class="fashion-cart-disabled" type="button" disabled title="Supplier stock must be verified before ordering">Add to Cart — Coming Soon</button><p class="fashion-note">Three-piece set · Minimum order: 1</p><p class="fashion-note">Delivery charges confirmed at checkout</p><p class="fashion-pending">Preview only — stock and supplier specifications awaiting verification</p></div></article>` : '<p>No products found.</p>';
         page(res, collection ? 'Ready-to-Wear Collection' : category || 'Shop the collection',
           `${hero}<div class="fashion-heading"><span>THE COLLECTION</span><p>${rows.length} ${rows.length === 1 ? 'style' : 'styles'} available</p></div><section class="grid fashion-grid">${cards || empty}</section>`);
 
+      } else if (path === '/shop/dress/leranath-yellow' && !post) {
+        page(res, 'Leranath Yellow Embroidered Shalwar Suit', `
+          <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop?category=Ready-to-Wear">Ready to Wear</a> / Leranath Yellow Suit</nav>
+          <section class="dress-detail">
+            <div class="dress-photo"><img src="/suqaena-leranath-yellow-suit.png" alt="Leranath yellow embroidered shalwar suit on SUQAENA model" loading="eager"><span class="dress-zoom-hint">Hover to zoom</span></div>
+            <div class="dress-info">
+              <div class="dress-eyebrow">SUQAENA · READY TO WEAR</div>
+              <h1>Leranath Yellow Embroidered Shalwar Suit (3-Piece)</h1>
+              <p class="dress-price">AED 75.00</p>
+              <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p>
+              <fieldset class="dress-sizes"><legend>Choose your size</legend>
+                <label><input type="radio" name="dress-size" value="S"><span>S</span></label>
+                <label><input type="radio" name="dress-size" value="M"><span>M</span></label>
+                <label><input type="radio" name="dress-size" value="L"><span>L</span></label>
+                <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
+              </fieldset>
+              <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
+              <button type="button" class="dress-add" disabled> Add to Cart · Awaiting Stock Confirmation</button>
+              <p class="dress-status">This dress is a preview. Ordering opens once supplier stock and measurements are verified.</p>
+              <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
+              <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
+              <details><summary>Size Guide</summary><p>Sizes S, M, L and XL are planned. Exact garment measurements will be published after supplier confirmation.</p></details>
+              <details><summary>Delivery & Returns</summary><p>Delivery costs, delivery estimates and applicable returns terms will be shown before an order is accepted.</p></details>
+            </div>
+          </section>
+          <script>(function(){const o=document.getElementById('dress-quantity');document.getElementById('dress-minus').addEventListener('click',()=>o.textContent=Math.max(1,Number(o.textContent)-1));document.getElementById('dress-plus').addEventListener('click',()=>o.textContent=Math.min(10,Number(o.textContent)+1));})();</script>
+        `);
       } else if (/^\/shop\/product\/\d{1,9}$/.test(path) && !post) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
