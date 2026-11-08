@@ -111,3 +111,19 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .dress-status{color:#85676d;font:13px/1.5 Arial,sans-serif}.dress-trust{display:flex;flex-wrap:wrap;gap:10px;margin:25px 0;color:#866337;font:12px Arial,sans-serif}
 .dress-info details{border-top:1px solid #e4d2b5;padding:17px 0;color:#563b3b}.dress-info details:last-child{border-bottom:1px solid #e4d2b5}.dress-info summary{cursor:pointer;color:#79102c;font:700 19px Georgia,serif}.dress-info details p{font:14px/1.6 Arial,sans-serif}
 @media(max-width:760px){.dress-detail{grid-template-columns:1fr;gap:20px;padding:0 14px}.dress-breadcrumb{padding:0 14px}.dress-photo img{max-height:650px;object-fit:contain}.dress-info h1{font-size:29px}.dress-photo:hover img{transform:none}}
+
+/* Shared premium navigation for all individual dress pages */
+.dress-site-header{background:linear-gradient(115deg,#69071e,#920d2e 55%,#68051b);color:#f4d58b;border-bottom:2px solid #c69b4d}
+.dress-brand-row{min-height:88px;max-width:1280px;margin:auto;padding:12px 25px;display:flex;align-items:center;justify-content:center;position:relative}
+.dress-brand{display:flex;align-items:center;gap:13px;color:#f0cf83;text-decoration:none!important;font:normal clamp(25px,4vw,43px) Georgia,serif;letter-spacing:3px}
+.dress-monogram{font:italic 40px Georgia,serif;letter-spacing:-12px;padding-right:12px;color:#d8ad54}
+.dress-header-actions{position:absolute;right:22px;display:flex;gap:20px}
+.dress-header-actions a{color:#fff5e6;text-decoration:none;text-align:center;font:27px Georgia,serif;display:flex;flex-direction:column;align-items:center;line-height:1.05;transition:color .2s,transform .2s}
+.dress-header-actions a:hover{color:#f3cb73;transform:translateY(-2px)}
+.dress-header-actions small{font:11px Arial,sans-serif;margin-top:5px}
+.dress-top-nav{display:flex;justify-content:center;gap:clamp(12px,2.4vw,35px);padding:14px 18px;border-top:1px solid #b67765;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+.dress-top-nav a{font:14px Georgia,serif;color:white;text-decoration:none;transition:color .2s}
+.dress-top-nav a:hover{color:#f1c36a}
+.dress-service-bar{display:flex;justify-content:center;gap:clamp(14px,4vw,60px);flex-wrap:wrap;padding:12px 15px;background:#fbf2e5;color:#79532b;font:12px Arial,sans-serif;border-bottom:1px solid #e6cfad}
+.dress-main{max-width:none!important;margin:0!important;padding:0!important}
+@media(max-width:680px){.dress-brand-row{min-height:72px;justify-content:flex-start;padding:10px 13px}.dress-brand{font-size:23px;letter-spacing:1px;gap:8px}.dress-monogram{font-size:29px;letter-spacing:-9px;padding-right:8px}.dress-header-actions{right:10px;gap:10px}.dress-header-actions a{font-size:22px}.dress-header-actions small{font-size:9px}.dress-top-nav{justify-content:flex-start;padding:12px}.dress-service-bar{font-size:10px;gap:8px}}
