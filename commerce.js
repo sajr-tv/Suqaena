@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS shop_products (
   UNIQUE (supplier, supplier_id)
 );
 CREATE TABLE IF NOT EXISTS shop_users (
-  email text PRIMARY KEY, password text NOT NULL
+  email text PRIMARY KEY, password text NOT NULL,
+  first_name text, last_name text
 );
 CREATE TABLE IF NOT EXISTS shop_sessions (
   token text PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
@@ -147,6 +148,8 @@ function commerce(env = process.env) {
     try {
       ready ||= (async () => {
         await query(schema);
+        await query('ALTER TABLE shop_users ADD COLUMN IF NOT EXISTS first_name text');
+        await query('ALTER TABLE shop_users ADD COLUMN IF NOT EXISTS last_name text');
         const supplierRecord = {
           title: 'Leranath Yellow Embroidered Shalwar Suit – 3 Piece',
           description: 'Yellow three-piece suit; exact supplier garment specifications pending verification.',
@@ -355,6 +358,13 @@ function commerce(env = process.env) {
           }
           const email = get('email').trim().toLowerCase();
           const password = get('password');
+          if (get('action') === 'register') {
+            const first = get('first_name').trim(), last = get('last_name').trim();
+            if (!/^[\\p{L}][\\p{L} .'-]{0,59}$/u.test(first) || !/^[\\p{L}][\\p{L} .'-]{0,59}$/u.test(last))
+              throw invalid('Please enter your first and last name.');
+            if (password !== get('confirm_password')) throw invalid('Passwords do not match.');
+            if (get('terms') !== 'yes') throw invalid('Please accept the Terms and Privacy Policy.');
+          }
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || password.length < 12 || password.length > 128) throw invalid('Use a valid email and a password of 12–128 characters.');
           if (activeLogins >= 4) { page(res, 'Try again shortly', '', 429); return true; }
           activeLogins++;
@@ -370,8 +380,8 @@ function commerce(env = process.env) {
                 !timingSafeEqual(Buffer.from(digest(password)), Buffer.from(digest(env.SHOP_ADMIN_PASSWORD)))) throw invalid('Invalid credentials.');
               await query("INSERT INTO shop_users VALUES ($1,'') ON CONFLICT DO NOTHING", [email]);
             } else if (registering) {
-              const result = await query('INSERT INTO shop_users VALUES ($1,$2) ON CONFLICT DO NOTHING',
-                [email, `${newSalt}:${actual.toString('hex')}`]);
+              const result = await query('INSERT INTO shop_users(email,password,first_name,last_name) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING',
+                [email, `${newSalt}:${actual.toString('hex')}`, get('first_name').trim(), get('last_name').trim()]);
               if (!result.rowCount) throw invalid('Unable to register. Try signing in.');
             } else if (!/^[a-f0-9]{128}$/.test(hash || '') || !timingSafeEqual(actual, Buffer.from(hash, 'hex'))) {
               throw invalid('Invalid credentials.');
@@ -385,14 +395,17 @@ function commerce(env = process.env) {
             activeLogins--;
           }
           redirect(res, path);
-        } else if (session) {
+        } else if (session && url.searchParams.get('mode') !== 'register' && url.searchParams.get('mode') !== 'login') {
           const orders = (await query('SELECT id,status,tracking FROM shop_orders WHERE email=$1 ORDER BY created DESC LIMIT 100', [session.email])).rows;
           dressPage(res, 'My account', `<section class="account-shell account-luxury"><div class="account-panel account-dashboard"><div class="account-crest">SQ</div><p class="account-eyebrow">YOUR SUQAENA ACCOUNT</p><h1>Welcome to SUQAENA</h1><p class="account-subtitle">A beautiful place to manage your shopping journey.</p><p class="account-email">${escape(session.email)}</p><div class="account-dashboard-links"><a href="/shop">Explore Collection</a><a href="/shop/cart">My Shopping Bag</a>${isAdmin ? '<a href="/shop/admin">Supplier Dashboard</a>' : ''}</div><h2>My Orders</h2>${orders.length ? orders.map(order => `<div class="account-order"><strong>Order ${escape(order.id)}</strong><span>${escape(order.status)} ${escape(order.tracking || '')}</span></div>`).join('') : '<p class="account-empty">You have no orders yet. Your favourites are waiting to be discovered.</p>'}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign Out')}</div></section>`);
         } else {
           const registering = url.searchParams.get('mode') === 'register';
-          const credentials = '<label class="account-field">Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required></label>' +
+          const names = registering ? '<div class="account-name-row"><label class="account-field">First Name<input name="first_name" type="text" autocomplete="given-name" maxlength="60" placeholder="First name" required></label><label class="account-field">Last Name<input name="last_name" type="text" autocomplete="family-name" maxlength="60" placeholder="Last name" required></label></div>' : '';
+          const credentials = names + '<label class="account-field">Email Address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required></label>' +
             '<label class="account-field">Password<input name="password" type="password" autocomplete="' + (registering ? 'new-password' : 'current-password') + '" minlength="12" maxlength="128" placeholder="At least 12 characters" required></label>' +
-            '<label class="account-password-toggle"><input type="checkbox" data-show-password> Show password</label>';
+            (registering ? '<label class="account-field">Confirm Password<input name="confirm_password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Repeat your password" required></label>' : '') +
+            '<label class="account-password-toggle"><input type="checkbox" data-show-password> Show passwords</label>' +
+            (registering ? '<label class="account-terms"><input type="checkbox" name="terms" value="yes" required> I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</label>' : '');
           const googleEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REDIRECT_URI);
           const googleButton = googleEnabled ? '<a class="account-google" href="/shop/auth/google"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.75 7.18l7.73 6C44.43 38.03 46.98 31.88 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.2A23.87 23.87 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6C30.03 37.65 27.29 38.5 24 38.5c-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</a>' :
             '<p class="account-google-pending">Google sign-in will be available once secure Google authentication is connected.</p>';
