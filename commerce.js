@@ -1,3 +1,4 @@
+const supplierMemo = require('./supplier-memo');
 const { Pool } = require('pg');
 const { parse } = require('csv-parse/sync');
 const { randomBytes, randomUUID, createHash, createHmac, scrypt, timingSafeEqual } = require('node:crypto');
@@ -226,6 +227,17 @@ function commerce(env = process.env) {
         fields = new URLSearchParams(Buffer.concat(chunks).toString('utf8'));
       }
       const get = name => fields.get(name) || '';
+      if (path === '/shop/admin/supplier-memo') {
+        let memo = null, error = '';
+        const supplierUrl = post ? get('supplier_url') : url.searchParams.get('url') || '';
+        if (post) {
+          try { memo = await supplierMemo.inspect(supplierUrl); }
+          catch (e) { error = e.message || 'Could not inspect the listing.'; }
+        }
+        page(res, 'Supplier Intelligence Memo', supplierMemo.render(memo, error, supplierUrl));
+        return true;
+      }
+
       const cart = new Map();
       for (const item of (cookies.shop_cart || '').split(',')) {
         const [key, qty] = item.split(':');
