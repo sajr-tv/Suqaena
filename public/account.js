@@ -1,7 +1,6 @@
 for (const toggle of document.querySelectorAll('[data-show-password]')) {
-  const password = toggle.form.elements.namedItem('password');
+  const passwords = [...toggle.form.querySelectorAll('input[name="password"], input[name="confirm_password"]')];
   toggle.addEventListener('change', () => {
-    password.type = toggle.checked ? 'text' : 'password';
+    for (const password of passwords) password.type = toggle.checked ? 'text' : 'password';
   });
-  toggle.closest('label').hidden = false;
 }
