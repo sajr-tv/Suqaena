@@ -3,13 +3,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   const form=document.getElementById('dress-preview-form');
   if(!form)return;
   form.addEventListener('submit',event=>{
-    const selected=document.querySelector('input[name="dress-size"]:checked');
+    const selected=document.querySelector('input[name="size"][form="dress-preview-form"]:checked');
     if(!selected){event.preventDefault();window.alert('Please choose your size first.');return;}
-    const sizeInput=document.getElementById('dress-cart-size');
     const qtyInput=document.getElementById('dress-cart-quantity');
-    if(!sizeInput||!qtyInput){event.preventDefault();window.alert('Unable to add item. Please refresh the page.');return;}
-    sizeInput.value=selected.value;
-    qtyInput.value=document.getElementById('dress-quantity')?.textContent||'1';
+    if(qtyInput)qtyInput.value=document.getElementById('dress-quantity')?.textContent||'1';
   });
 });
 
