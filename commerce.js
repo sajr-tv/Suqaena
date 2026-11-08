@@ -157,6 +157,20 @@ function commerce(env = process.env) {
           displayedSizes: ['S','M','L','XL'],
           wholesalePriceAED: null,
           supplierContact: null,
+          supplierResearch: {
+            checkedAt: '2026-11-08',
+            exactProductPrice: null,
+            exactProductPriceStatus: 'Alibaba product page inaccessible; not verified',
+            possibleSupplierContacts: [
+              {name:'Leranath Fashion', email:'leranath.fashion@gmail.com', phone:'+91 99137 92875', address:'V Plaza D-501, near Gajera School, Katargam, Surat, Gujarat 395004, India', website:'https://leranathfashionstore.com/', matchStatus:'Name match; exact Alibaba seller identity unverified'},
+              {name:'Leranath Fashion House', email:'Leranath.Fashion.House@Gmail.Com', phone:'+91 9978253682 / +91 9687967999', address:'A-1136, Upper Floor, New Bombay Market, Umarwada Road, Surat, Gujarat, India', website:'https://www.leranathfashionhouse.in/contact', matchStatus:'Similar name, distinct business; do not assume same seller'}
+            ],
+            referencePricesOnly: [
+              {item:'Leranath Fashion embroidered rayon kurti with pant and dupatta (different item)',inr:570,source:'https://www.leranathfashion.in/ladies-kurti.html'}
+            ],
+            sourceLinks:['https://leranathfashionstore.com/','https://www.leranathfashionhouse.in/contact','https://www.leranathfashion.in/ladies-kurti.html'],
+            nextStep:'Contact seller through exact Alibaba listing to confirm legal seller, unit cost, 1-piece MOQ, size inventory, GCC dropship rates and complimentary jewellery availability'
+          },
           supplierCompany: null,
           supplierStockBySize: null,
           supplierShippingTerms: null,
