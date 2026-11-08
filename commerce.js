@@ -214,7 +214,7 @@ function commerce(env = process.env) {
               <div class="dress-eyebrow">SUQAENA · READY TO WEAR</div>
               <h1>Leranath Yellow Embroidered Shalwar Suit (3-Piece)</h1>
               <p class="dress-price">AED 75.00</p>
-              <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p><aside class="dress-gift-offer" aria-label="Jewellery launch gift"><span class="dress-gift-icon" aria-hidden="true">✦</span><div><strong>FREE Jewellery Gift — First 1,000 Customers</strong><p>Launch promotion planned for the first 1,000 eligible dress orders. Gift availability and eligibility will be confirmed before checkout opens.</p></div></aside>
+              <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p><aside class="dress-gift-offer" aria-label="Jewellery launch gift"><span class="dress-gift-icon" aria-hidden="true">✦</span><div><strong>Complimentary Matching Jewellery with This Dress</strong><p>A beautiful jewellery gift selected to complement your yellow ensemble — included at no extra charge.</p></div></aside>
               <fieldset class="dress-sizes"><legend>Choose your size</legend>
                 <label><input type="radio" name="dress-size" value="S"><span>S</span></label>
                 <label><input type="radio" name="dress-size" value="M"><span>M</span></label>
