@@ -65,3 +65,8 @@ body:has(.fashion-hero) main>h1{display:none}
 @media(max-width:1050px){.fashion-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
 @media(max-width:650px){.fashion-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fashion-grid .fashion-details{padding:11px}.fashion-grid .fashion-details h2{font-size:15px}.fashion-grid .fashion-price{font-size:14px}.fashion-grid .fashion-cta{font-size:12px;padding:11px 4px}.fashion-hero{margin-top:10px;margin-bottom:24px}}
 @media(prefers-reduced-motion:reduce){.fashion-grid .fashion-card,.fashion-grid .fashion-image img{transition:none}.fashion-grid .fashion-card:hover{transform:none}.fashion-grid .fashion-card:hover img{transform:none}}
+
+/* SUQAENA Ready-to-Wear uploaded hero artwork */
+body:has(.fashion-hero) .fashion-hero{background:#71051b url('/suqaena-ready-to-wear-hero.png') center/cover no-repeat;aspect-ratio:2200/680;min-height:240px;padding:0;border:0;margin:18px 0 36px}
+body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+@media(max-width:650px){body:has(.fashion-hero) .fashion-hero{min-height:150px;background-size:cover;background-position:center}}
