@@ -14,6 +14,9 @@ COPY suqaena-maroon-embroidered-suit-detail.png ./suqaena-maroon-embroidered-sui
 COPY suqaena-lemon-yellow-party-suit-main.png ./suqaena-lemon-yellow-party-suit-main.png
 COPY suqaena-lemon-yellow-party-suit-side.png ./suqaena-lemon-yellow-party-suit-side.png
 COPY suqaena-lemon-yellow-party-suit-detail.png ./suqaena-lemon-yellow-party-suit-detail.png
+COPY suqaena-cream-mustard-suit-main.png ./suqaena-cream-mustard-suit-main.png
+COPY suqaena-cream-mustard-suit-side.png ./suqaena-cream-mustard-suit-side.png
+COPY suqaena-cream-mustard-suit-detail.png ./suqaena-cream-mustard-suit-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
