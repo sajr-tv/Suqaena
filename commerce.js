@@ -191,7 +191,16 @@ function commerce(env = process.env) {
           AND ($1='' OR data->>'category'=$1)
           AND ($2='' OR strpos(lower(concat_ws(' ',data->>'title',data->>'fabric',data->>'description')),lower($2))>0)
           ORDER BY id DESC LIMIT 100`, [category, search])).rows;
-        page(res, category || 'Shop the collection', `<form><label>Search<input name="q" value="${escape(search)}"></label><label>Category<select name="category"><option value="">All</option>${categories.map(c => `<option${c === category ? ' selected' : ''}>${escape(c)}</option>`).join('')}</select></label><button>Filter</button></form><section class="grid">${rows.map(({ id, data }) => `<article><a href="/shop/product/${id}">${image(data)}<h2>${escape(data.title)}</h2></a><p>From ${money(Math.min(...data.variants.map(v => v.price)))}</p></article>`).join('') || '<p>No products found.</p>'}</section>`);
+        const collection = category === 'Ready-to-Wear';
+        const cards = rows.map(({ id, data }) => {
+          const minPrice = Math.min(...data.variants.map(v => Number(v.price)).filter(Number.isFinite));
+          return `<article class="fashion-card"><a class="fashion-image" href="/shop/product/${id}">${image(data) || '<div class="fashion-placeholder">Image coming soon</div>'}</a><div class="fashion-details"><h2><a href="/shop/product/${id}">${escape(data.title)}</a></h2><p class="fashion-price">${money(minPrice)}</p><a class="fashion-cta" href="/shop/product/${id}">View Dress</a></div></article>`;
+        }).join('');
+        const hero = collection ? `<section class="fashion-hero"><span class="fashion-eyebrow">SUQAENA · THE SIGNATURE EDIT</span><h1>Ready to Wear</h1><p>3-Piece Shalwar Suits</p><span class="fashion-rule"></span><div class="fashion-subtitle">Beautifully curated kameez, trousers and dupatta sets</div></section>` : '';
+        const empty = collection ? '<div class="fashion-empty"><h2>Our collection is being curated</h2><p>We are preparing verified ready-to-wear outfits. New dresses will appear here as soon as they are approved.</p><a href="/">Explore SUQAENA</a></div>' : '<p>No products found.</p>';
+        page(res, collection ? 'Ready-to-Wear Collection' : category || 'Shop the collection',
+          `${hero}<div class="fashion-heading"><span>THE COLLECTION</span><p>${rows.length} ${rows.length === 1 ? 'style' : 'styles'} available</p></div><section class="grid fashion-grid">${cards || empty}</section>`);
+
       } else if (/^\/shop\/product\/\d{1,9}$/.test(path) && !post) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
