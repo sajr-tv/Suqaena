@@ -20,6 +20,9 @@ COPY suqaena-cream-mustard-suit-detail.png ./suqaena-cream-mustard-suit-detail.p
 COPY suqaena-blue-floral-anarkali-main.png ./suqaena-blue-floral-anarkali-main.png
 COPY suqaena-blue-floral-anarkali-side.png ./suqaena-blue-floral-anarkali-side.png
 COPY suqaena-blue-floral-anarkali-detail.png ./suqaena-blue-floral-anarkali-detail.png
+COPY suqaena-purple-anarkali-main.png ./suqaena-purple-anarkali-main.png
+COPY suqaena-purple-anarkali-side.png ./suqaena-purple-anarkali-side.png
+COPY suqaena-purple-anarkali-detail.png ./suqaena-purple-anarkali-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
