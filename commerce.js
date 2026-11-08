@@ -300,9 +300,12 @@ function commerce(env = process.env) {
           redirect(res, path);
         } else {
           const items = await lines();
-          page(res, 'Shopping cart', items.map(({ key, quantity, product, variant }) =>
-            `<article><h2>${escape(product.title)}</h2><p>${escape(variant.size)} · ${escape(variant.color)} · ${quantity} × ${money(variant.price)}</p>${form(path, `<input type="hidden" name="variant" value="${key}"><input type="hidden" name="remove" value="1">`, 'Remove')}</article>`
-          ).join('') + (items.length ? '<a href="/shop/checkout">Checkout</a>' : '<p>Your cart is empty.</p>'));
+          const subtotal = items.reduce((sum, item) => sum + item.quantity * item.variant.price, 0);
+          dressPage(res, 'Shopping bag', '<section class="cart-shell"><p class="account-eyebrow">YOUR SELECTION</p><h1>Shopping Bag</h1>' +
+            (items.length ? items.map(({ key, quantity, product, variant }) =>
+              `<article class="cart-line"><div><h2>${escape(product.title)}</h2><p>Size: ${escape(variant.size)} · Colour: ${escape(variant.color)}</p><p>Quantity: ${quantity} · ${money(variant.price)} each</p></div><div><strong>${money(quantity * variant.price)}</strong>${form(path, `<input type="hidden" name="variant" value="${key}"><input type="hidden" name="remove" value="1">`, 'Remove')}</div></article>`
+            ).join('') + `<div class="cart-summary"><h2>Order Summary</h2><p>Subtotal <strong>${money(subtotal)}</strong></p><small>Shipping is calculated at checkout. Orders are only available after supplier stock and delivery arrangements are confirmed.</small><a class="cart-checkout" href="/shop/checkout">Continue to checkout</a></div>` :
+              '<div class="cart-empty"><h2>Your shopping bag is empty</h2><p>Discover something beautiful in our latest collection.</p><a class="cart-checkout" href="/shop">Explore collection</a></div>') + '</section>');
         }
       } else if (path === '/shop/account') {
         if (post) {
@@ -349,9 +352,18 @@ function commerce(env = process.env) {
           const orders = (await query('SELECT id,status,tracking FROM shop_orders WHERE email=$1 ORDER BY created DESC LIMIT 100', [session.email])).rows;
           page(res, 'Your account', `<p>${escape(session.email)}</p>${isAdmin ? '<a href="/shop/admin">Supplier dashboard</a>' : ''}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign out')}<h2>Orders</h2>${orders.map(order => `<p>${order.id} · ${escape(order.status)} ${escape(order.tracking)}</p>`).join('')}`);
         } else {
-          const credentials = input('email', 'Email', 'email') + input('password', 'Password', 'password') +
-            '<label hidden><input type="checkbox" data-show-password> Show password</label>';
-          page(res, 'Your account', form(path, credentials, 'Sign in') + form(path, credentials + '<input type="hidden" name="action" value="register">', 'Create account') + '<script src="/account.js" defer></script>');
+          const registering = url.searchParams.get('mode') === 'register';
+          const credentials = input('email', 'Email', 'email') + input('password', 'Password (12 characters minimum)', 'password') +
+            '<label class="account-password-toggle"><input type="checkbox" data-show-password> Show password</label>';
+          const body = '<section class="account-shell"><div class="account-panel"><p class="account-eyebrow">WELCOME TO SUQAENA</p><h1>' +
+            (registering ? 'Create your account' : 'Welcome back') + '</h1><p class="account-subtitle">' +
+            (registering ? 'Join SUQAENA to save your details and follow your orders.' : 'Sign in to view your orders and continue shopping.') +
+            '</p>' + form(path, credentials + (registering ? '<input type="hidden" name="action" value="register">' : ''),
+            registering ? 'Create account' : 'Sign in') + '<p class="account-switch">' +
+            (registering ? 'Already have an account? <a href="/shop/account">Sign in</a>' :
+              'New to SUQAENA? <a href="/shop/account?mode=register">Create an account</a>') +
+            '</p><p class="account-back"><a href="/shop">Continue shopping</a></p></div></section><script src="/account.js" defer></script>';
+          dressPage(res, registering ? 'Create account' : 'Sign in', body);
         }
       } else if (path === '/shop/checkout') {
         if (!session) { redirect(res, '/shop/account'); return true; }
