@@ -1,0 +1,329 @@
+const { Pool } = require('pg');
+const { parse } = require('csv-parse/sync');
+const { randomBytes, randomUUID, createHash, createHmac, scrypt, timingSafeEqual } = require('node:crypto');
+
+const derivePassword = require('node:util').promisify(scrypt);
+
+const categories = [
+  'Pakistani Designer-Inspired Clothing', 'Unstitched 2-Piece and 3-Piece Suits',
+  'Ready-to-Wear', 'Luxury Pret', 'Formal and Party Wear', 'Embroidered Lawn and Chiffon',
+  'Sarees', 'Abayas and Kaftans', 'Bridal and Festive Wear', 'Accessories'
+];
+const countryNames = { AE: 'United Arab Emirates', SA: 'Saudi Arabia', QA: 'Qatar',
+  KW: 'Kuwait', BH: 'Bahrain', OM: 'Oman' };
+const markets = { AE: 'AED', SA: 'SAR', QA: 'QAR', KW: 'KWD', BH: 'BHD', OM: 'OMR' };
+const schema = `
+CREATE TABLE IF NOT EXISTS shop_products (
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, supplier text NOT NULL,
+  supplier_id text NOT NULL, data jsonb NOT NULL, published boolean NOT NULL DEFAULT false,
+  UNIQUE (supplier, supplier_id)
+);
+CREATE TABLE IF NOT EXISTS shop_users (
+  email text PRIMARY KEY, password text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS shop_sessions (
+  token text PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
+  expires timestamptz NOT NULL DEFAULT now() + interval '12 hours'
+);
+CREATE TABLE IF NOT EXISTS shop_orders (
+  id uuid PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
+  data jsonb NOT NULL, status text NOT NULL DEFAULT 'test', tracking text,
+  created timestamptz NOT NULL DEFAULT now()
+);`;
+const digest = value => createHash('sha256').update(value).digest('hex');
+const escape = value => String(value ?? '').replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const money = (amount, currency = 'AED') => new Intl.NumberFormat('en', {
+  style: 'currency', currency
+}).format(amount);
+const invalid = message => Object.assign(new Error(message), { status: 400 });
+
+function supplierRows(csv, margin, imageHosts) {
+  if (!Number.isFinite(margin) || margin < 0 || margin > 90) throw invalid('Margin must be 0–90%.');
+  const products = new Map();
+  let rows;
+  try {
+    rows = parse(csv, { bom: true, columns: true, skip_empty_lines: true, trim: true, max_record_size: 16000 });
+  } catch {
+    throw invalid('Invalid CSV structure.');
+  }
+  if (!rows.length || rows.length > 2000) throw invalid('Upload 1–2,000 variant rows.');
+  for (const [index, row] of rows.entries()) {
+    const fail = message => { throw invalid(`Row ${index + 2}. ${message}`); };
+    const required = (key, max) => {
+      if (!row[key] || row[key].length > max) fail(`Invalid ${key}.`);
+      return row[key];
+    };
+    const https = (value, allowed) => {
+      let url;
+      try { url = new URL(value); } catch { fail('Invalid URL.'); }
+      if (url.protocol !== 'https:' || url.username || url.password || url.port || !allowed(url.hostname)) {
+        fail('URL must use an approved HTTPS host.');
+      }
+      return url.href;
+    };
+    const supplier = required('supplier', 120).toLowerCase();
+    const supplierId = required('product_id', 120);
+    const category = required('category', 100);
+    if (!categories.includes(category)) fail('Unknown category.');
+    const source = row.source_url ? https(row.source_url, h => h === 'alibaba.com' || h.endsWith('.alibaba.com')) : '';
+    const images = row.images ? row.images.split('|').map(value => https(value.trim(), h => imageHosts.includes(h))) : [];
+    if (images.length > 8 || (images.length && row.image_permission !== 'yes')) fail('Image permission is required.');
+    const base = {
+      title: required('title', 180), description: required('description', 4000),
+      specifications: row.specifications || '', fabric: required('fabric', 120),
+      category, source, images
+    };
+    const cost = Number(required('wholesale_aed', 14));
+    const quantity = Number(required('quantity', 8));
+    if (!Number.isFinite(cost) || cost <= 0 || cost > 100000 || !Number.isInteger(quantity) || quantity < 0) {
+      fail('Invalid wholesale price or quantity.');
+    }
+    const retail = row.retail_aed ? Number(row.retail_aed) : Math.round(cost / (1 - margin / 100) * 100) / 100;
+    if (!Number.isFinite(retail) || retail <= 0 || retail > 1000000) fail('Invalid retail price.');
+    const variant = {
+      sku: required('sku', 120), size: required('size', 60), color: required('color', 60),
+      cost, quantity, price: retail
+    };
+    const key = JSON.stringify([supplier, supplierId]);
+    if (!products.has(key)) products.set(key, { supplier, supplierId, data: { ...base, variants: [] } });
+    const product = products.get(key);
+    const { variants, ...previous } = product.data;
+    if (JSON.stringify(previous) !== JSON.stringify(base)) fail('Product details must match across variants.');
+    if (variants.some(v => v.sku === variant.sku || (v.size === variant.size && v.color === variant.color))) {
+      fail('Duplicate variant.');
+    }
+    variants.push(variant);
+  }
+  return [...products.values()];
+}
+
+function commerce(env = process.env) {
+  const pool = env.DATABASE_URL ? new Pool({
+    connectionString: env.DATABASE_URL, connectionTimeoutMillis: 5000, statement_timeout: 10000
+  }) : null;
+  pool?.on('error', error => console.error('Shop database connection error', error.code || error.name));
+  const imageHosts = (env.SUPPLIER_IMAGE_HOSTS || '').split(',').map(h => h.trim().toLowerCase()).filter(Boolean);
+  let ready;
+  const query = (...args) => pool.query(...args);
+  let shipping;
+  try {
+    shipping = JSON.parse(env.SHOP_SHIPPING_JSON || '{}') || {};
+  } catch {
+    console.error('SHOP_SHIPPING_JSON is invalid. Shipping quotes are disabled.');
+    shipping = {};
+  }
+  const site = env.SHOP_ORIGIN || 'https://suqaena.com';
+  const secure = new URL(site).protocol === 'https:';
+  const admin = (env.SHOP_ADMIN_EMAIL || '').trim().toLowerCase();
+  const adminEnabled = admin && (env.SHOP_ADMIN_PASSWORD || '').length >= 20;
+  const adminSignature = token => createHmac('sha256', env.SHOP_ADMIN_PASSWORD)
+    .update(`suqaena-admin:${admin}:${token}`).digest('hex');
+  let activeLogins = 0;
+
+  function page(res, title, body, status = 200) {
+    res.writeHead(status, {
+      'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
+      'Content-Security-Policy': `default-src 'self'; img-src 'self' https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`
+    });
+    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css"><header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header><main><h1>${escape(title)}</h1>${body}</main></html>`);
+  }
+  const redirect = (res, location) => res.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }).end();
+  const form = (path, body, label) => `<form method="post" action="${path}">${body}<button>${label}</button></form>`;
+  const input = (name, label, type = 'text') => `<label>${label}<input name="${name}" type="${type}" required></label>`;
+  const image = product => product.images[0] ? `<img loading="lazy" alt="${escape(product.title)}" src="${escape(product.images[0])}">` : '';
+  const cookie = (res, name, value, age) => res.appendHeader('Set-Cookie',
+    `${name}=${value}; Path=/shop; HttpOnly; SameSite=Lax; Max-Age=${age}${secure ? '; Secure' : ''}`);
+
+  async function handle(req, res, url) {
+    const path = url.pathname;
+    if (path !== '/shop' && !path.startsWith('/shop/')) return false;
+    if (!pool) { page(res, 'Shop opening soon', '<p>Explore our collections from the homepage.</p>', 503); return true; }
+    try {
+      ready ||= query(schema).catch(error => { ready = undefined; throw error; });
+      await ready;
+      const post = req.method === 'POST';
+      if (!post && req.method !== 'GET') { res.writeHead(405).end(); return true; }
+      const cookies = Object.fromEntries((req.headers.cookie || '').split(/; */).map(entry => entry.split('=')));
+      const token = cookies.shop_session;
+      const session = /^[a-f0-9]{64}$/.test(token || '') ? (await query(
+        'SELECT email FROM shop_sessions WHERE token=$1 AND expires>now()', [digest(token)]
+      )).rows[0] : null;
+      const signature = cookies.shop_admin || '';
+      const isAdmin = adminEnabled && session?.email === admin && /^[a-f0-9]{64}$/.test(signature) &&
+        timingSafeEqual(Buffer.from(signature), Buffer.from(adminSignature(token)));
+      if (path.startsWith('/shop/admin') && !isAdmin) { page(res, 'Access denied', '', 403); return true; }
+      let fields = new URLSearchParams();
+      if (post) {
+        if (req.headers.origin !== site) { page(res, 'Access denied', '', 403); return true; }
+        if (req.headers['content-type']?.split(';')[0] !== 'application/x-www-form-urlencoded') throw invalid('Invalid form.');
+        const chunks = [];
+        let size = 0;
+        for await (const chunk of req) {
+          size += chunk.length;
+          if (size > 2 * 1024 * 1024) { res.writeHead(413).end(); return true; }
+          chunks.push(chunk);
+        }
+        fields = new URLSearchParams(Buffer.concat(chunks).toString('utf8'));
+      }
+      const get = name => fields.get(name) || '';
+      const cart = new Map();
+      for (const item of (cookies.shop_cart || '').split(',')) {
+        const [key, qty] = item.split(':');
+        if (/^\d{1,9}\.[a-f0-9]{64}$/.test(key) && /^([1-9]|10)$/.test(qty)) cart.set(key, Number(qty));
+      }
+      const lines = async () => {
+        const ids = [...cart.keys()].map(key => Number(key.split('.')[0]));
+        const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
+        return [...cart].flatMap(([key, quantity]) => {
+          const [id, variantKey] = key.split('.');
+          const product = products.find(row => row.id === Number(id))?.data;
+          const variant = product?.variants.find(v => digest(v.sku) === variantKey);
+          return variant ? [{ key, quantity, product, variant }] : [];
+        });
+      };
+
+      if (path === '/shop' && !post) {
+        const category = url.searchParams.get('category') || '';
+        const search = (url.searchParams.get('q') || '').slice(0, 120);
+        const rows = (await query(`SELECT id,data FROM shop_products WHERE published
+          AND ($1='' OR data->>'category'=$1)
+          AND ($2='' OR strpos(lower(concat_ws(' ',data->>'title',data->>'fabric',data->>'description')),lower($2))>0)
+          ORDER BY id DESC LIMIT 100`, [category, search])).rows;
+        page(res, category || 'Shop the collection', `<form><label>Search<input name="q" value="${escape(search)}"></label><label>Category<select name="category"><option value="">All</option>${categories.map(c => `<option${c === category ? ' selected' : ''}>${escape(c)}</option>`).join('')}</select></label><button>Filter</button></form><section class="grid">${rows.map(({ id, data }) => `<article><a href="/shop/product/${id}">${image(data)}<h2>${escape(data.title)}</h2></a><p>From ${money(Math.min(...data.variants.map(v => v.price)))}</p></article>`).join('') || '<p>No products found.</p>'}</section>`);
+      } else if (/^\/shop\/product\/\d{1,9}$/.test(path) && !post) {
+        const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
+        if (!row) { page(res, 'Product unavailable', '', 404); return true; }
+        const { id, data } = row;
+        page(res, data.title, `${data.images.map(src => `<img alt="${escape(data.title)}" src="${escape(src)}">`).join('')}<p>${escape(data.description)}</p><p>${escape(data.fabric)} · ${escape(data.specifications)}</p>${form('/shop/cart', `<label>Size and color<select name="variant" required>${data.variants.map(v => `<option value="${id}.${digest(v.sku)}" ${v.quantity ? '' : 'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${v.quantity ? '' : ' · Sold out'}</option>`).join('')}</select></label>`, 'Add to cart')}`);
+      } else if (path === '/shop/cart') {
+        if (post) {
+          const key = get('variant');
+          if (!/^\d{1,9}\.[a-f0-9]{64}$/.test(key)) throw invalid('Invalid variant.');
+          if (get('remove')) cart.delete(key);
+          else {
+            const quantity = (cart.get(key) || 0) + 1;
+            cart.set(key, quantity);
+            const line = (await lines()).find(item => item.key === key);
+            if (!line || quantity > line.variant.quantity || quantity > 10 || cart.size > 30) throw invalid('Quantity unavailable.');
+          }
+          cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
+          redirect(res, path);
+        } else {
+          const items = await lines();
+          page(res, 'Shopping cart', items.map(({ key, quantity, product, variant }) =>
+            `<article><h2>${escape(product.title)}</h2><p>${escape(variant.size)} · ${escape(variant.color)} · ${quantity} × ${money(variant.price)}</p>${form(path, `<input type="hidden" name="variant" value="${key}"><input type="hidden" name="remove" value="1">`, 'Remove')}</article>`
+          ).join('') + (items.length ? '<a href="/shop/checkout">Checkout</a>' : '<p>Your cart is empty.</p>'));
+        }
+      } else if (path === '/shop/account') {
+        if (post) {
+          if (get('action') === 'logout') {
+            if (session) await query('DELETE FROM shop_sessions WHERE token=$1', [digest(token)]);
+            cookie(res, 'shop_session', '', 0);
+            cookie(res, 'shop_admin', '', 0);
+            redirect(res, path);
+            return true;
+          }
+          const email = get('email').trim().toLowerCase();
+          const password = get('password');
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || password.length < 12 || password.length > 128) throw invalid('Use a valid email and a password of 12–128 characters.');
+          if (activeLogins >= 4) { page(res, 'Try again shortly', '', 429); return true; }
+          activeLogins++;
+          try {
+            const record = email === admin ? undefined :
+              (await query('SELECT password FROM shop_users WHERE email=$1', [email])).rows[0]?.password;
+            const [salt, hash] = (record || '').split(':');
+            const registering = get('action') === 'register';
+            const newSalt = registering ? randomBytes(16).toString('hex') : null;
+            const actual = await derivePassword(password, newSalt || salt || 'invalid-account', 64);
+            if (email === admin) {
+              if (!adminEnabled || registering ||
+                !timingSafeEqual(Buffer.from(digest(password)), Buffer.from(digest(env.SHOP_ADMIN_PASSWORD)))) throw invalid('Invalid credentials.');
+              await query("INSERT INTO shop_users VALUES ($1,'') ON CONFLICT DO NOTHING", [email]);
+            } else if (registering) {
+              const result = await query('INSERT INTO shop_users VALUES ($1,$2) ON CONFLICT DO NOTHING',
+                [email, `${newSalt}:${actual.toString('hex')}`]);
+              if (!result.rowCount) throw invalid('Unable to register. Try signing in.');
+            } else if (!hash || !timingSafeEqual(actual, Buffer.from(hash, 'hex'))) {
+              throw invalid('Invalid credentials.');
+            }
+            const newToken = randomBytes(32).toString('hex');
+            if (session) await query('DELETE FROM shop_sessions WHERE token=$1', [digest(token)]);
+            await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)', [digest(newToken), email]);
+            cookie(res, 'shop_session', newToken, 43200);
+            cookie(res, 'shop_admin', email === admin ? adminSignature(newToken) : '', email === admin ? 43200 : 0);
+          } finally {
+            activeLogins--;
+          }
+          redirect(res, path);
+        } else if (session) {
+          const orders = (await query('SELECT id,status,tracking FROM shop_orders WHERE email=$1 ORDER BY created DESC LIMIT 100', [session.email])).rows;
+          page(res, 'Your account', `<p>${escape(session.email)}</p>${isAdmin ? '<a href="/shop/admin">Supplier dashboard</a>' : ''}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign out')}<h2>Orders</h2>${orders.map(order => `<p>${order.id} · ${escape(order.status)} ${escape(order.tracking)}</p>`).join('')}`);
+        } else {
+          const credentials = input('email', 'Email', 'email') + input('password', 'Password', 'password');
+          page(res, 'Your account', form(path, credentials, 'Sign in') + form(path, credentials + '<input type="hidden" name="action" value="register">', 'Create account'));
+        }
+      } else if (path === '/shop/checkout') {
+        if (!session) { redirect(res, '/shop/account'); return true; }
+        const items = await lines();
+        if (!items.length || items.length !== cart.size || items.some(line => line.quantity > line.variant.quantity)) throw invalid('Review product availability in your cart.');
+        const country = post ? get('country') : url.searchParams.get('country') || 'AE';
+        if (!Object.hasOwn(markets, country)) throw invalid('Unknown shipping country.');
+        const market = shipping[country];
+        const configured = market && Number.isFinite(market.fee) && market.fee >= 0 &&
+          Number.isFinite(market.rate) && market.rate > 0 && typeof market.eta === 'string' && market.eta.length > 0;
+        const total = configured ? items.reduce((sum, line) =>
+          sum + line.quantity * line.variant.price, 0) * market.rate + market.fee : 0;
+        if (post) {
+          if (!configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is currently unavailable.');
+          const id = get('request_id');
+          if (!/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/.test(id)) throw invalid('Invalid checkout request.');
+          await query('INSERT INTO shop_orders(id,email,data) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+            [id, session.email, { country, currency: markets[country], total, items: items.map(({ product, variant, quantity }) =>
+              ({ title: product.title, source: product.source, sku: variant.sku, quantity, priceAED: variant.price })) }]);
+          cookie(res, 'shop_cart', '', 0);
+          redirect(res, '/shop/account');
+        } else {
+          page(res, 'Checkout', `<form><label>Country<select name="country">${Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('')}</select></label><button>Update shipping</button></form>${configured ? `<p>Shipping ${money(market.fee, markets[country])} · ${escape(market.eta)}</p><p>Total ${money(total, markets[country])}</p>` : '<p>Shipping is pending confirmation for this market.</p>'}${configured && isAdmin && env.SHOP_TEST_CHECKOUT === 'true' ? form(path, `<input type="hidden" name="country" value="${country}"><input type="hidden" name="request_id" value="${randomUUID()}">`, 'Create test order') : '<p>Ordering will open once checkout is ready.</p>'}`);
+        }
+      } else if (path === '/shop/admin') {
+        if (post) {
+          const action = get('action');
+          if (action === 'import') {
+            if (get('authorized') !== 'yes') throw invalid('Confirm supplier authorization first.');
+            const products = supplierRows(get('csv'), Number(get('margin') || NaN), imageHosts);
+            await query(`INSERT INTO shop_products(supplier,supplier_id,data)
+              SELECT supplier, "supplierId", data FROM jsonb_to_recordset($1::jsonb)
+              AS incoming(supplier text, "supplierId" text, data jsonb)
+              ON CONFLICT(supplier,supplier_id) DO UPDATE SET data=EXCLUDED.data,published=false`, [JSON.stringify(products)]);
+          } else if (['publish', 'unpublish', 'remove'].includes(action)) {
+            const ids = fields.getAll('id').filter(id => /^\d{1,9}$/.test(id));
+            if (action === 'publish' && get('verified') !== 'yes') throw invalid('Confirm review before publication.');
+            if (action === 'remove') await query('DELETE FROM shop_products WHERE id=ANY($1::integer[])', [ids]);
+            else await query('UPDATE shop_products SET published=$2 WHERE id=ANY($1::integer[])', [ids, action === 'publish']);
+          } else if (['review-order', 'track-order'].includes(action)) {
+            if (!/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/.test(get('order'))) throw invalid('Invalid order ID.');
+            if (action === 'track-order') {
+              const tracking = get('tracking').trim();
+              if (!/^[a-zA-Z0-9 -]{1,100}$/.test(tracking)) throw invalid('Invalid tracking reference.');
+              await query("UPDATE shop_orders SET tracking=$2 WHERE id=$1 AND status='test reviewed'", [get('order'), tracking]);
+            } else await query("UPDATE shop_orders SET status='test reviewed' WHERE id=$1 AND status='test'", [get('order')]);
+          } else throw invalid('Unknown action.');
+          redirect(res, path);
+        } else {
+          const rows = (await query('SELECT * FROM shop_products ORDER BY id DESC LIMIT 200')).rows;
+          const orders = (await query('SELECT * FROM shop_orders ORDER BY created DESC LIMIT 100')).rows;
+          page(res, 'Supplier dashboard', `<h2>Import supplier CSV</h2><p>Paste authorized CSV or select a CSV file. Reimports replace all variants and return the product to draft.</p><p><code>supplier,product_id,sku,title,description,specifications,category,fabric,size,color,wholesale_aed,quantity,source_url,images,image_permission,retail_aed</code></p><label>CSV file<input id="csv-file" type="file" accept=".csv,text/csv"></label><script src="/supplier-import.js" defer></script>${form(path, '<input type="hidden" name="action" value="import"><label>Catalogue CSV<textarea id="csv" name="csv" required></textarea></label><label>Gross margin %<input type="number" name="margin" min="0" max="90" step="0.01" required></label><label><input type="checkbox" name="authorized" value="yes" required>Supplier authorized catalogue and image use</label>', 'Import drafts')}<h2>Products</h2><form method="post" action="${path}">${rows.map(row => `<article><label><input type="checkbox" name="id" value="${row.id}">${escape(row.data.title)} · ${row.published ? 'Published' : 'Draft'}</label>${image(row.data)}<p>${escape(row.supplier)} · ${escape(row.supplier_id)} · ${escape(row.data.category)}</p><p>${escape(row.data.description)} · ${escape(row.data.fabric)} · ${escape(row.data.specifications)}</p>${row.data.source ? `<a href="${escape(row.data.source)}">Supplier listing</a>` : ''}<ul>${row.data.variants.map(v => `<li>${escape(v.sku)} · ${escape(v.size)} · ${escape(v.color)} · ${v.quantity} available · ${money(v.cost)} wholesale · ${money(v.price)} retail</li>`).join('')}</ul></article>`).join('')}<label><input type="checkbox" name="verified" value="yes">I verified the selected listings, availability and image permissions</label><button name="action" value="publish">Publish</button><button name="action" value="unpublish">Unpublish</button><button name="action" value="remove">Remove</button></form><h2>Test orders</h2>${orders.map(order => `<article><p>${order.id} · ${escape(order.status)} · ${escape(order.data.country)}</p><ul>${order.data.items.map(item => `<li>${escape(item.title)} · ${escape(item.sku)} × ${item.quantity}</li>`).join('')}</ul>${order.status === 'test' ? form(path, `<input type="hidden" name="action" value="review-order"><input type="hidden" name="order" value="${order.id}">`, 'Mark test order reviewed') : form(path, `<input type="hidden" name="action" value="track-order"><input type="hidden" name="order" value="${order.id}">${input('tracking', 'Test tracking reference')}`, 'Save tracking reference')}</article>`).join('')}`);
+        }
+      } else page(res, 'Page unavailable', '', 404);
+    } catch (error) {
+      if (!error.status) console.error('Shop request failed', error.code || error.name);
+      if (!res.headersSent) page(res, error.status ? 'Check your request' : 'Shop temporarily unavailable',
+        error.status ? `<p>${escape(error.message)}</p>` : '', error.status || 503);
+    }
+    return true;
+  }
+  return handle;
+}
+module.exports = { commerce, supplierRows };
