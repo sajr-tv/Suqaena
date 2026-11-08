@@ -560,8 +560,8 @@ function commerce(env = process.env) {
           const previewNotice = !stockVerified ? 'Supplier stock verification is pending. You can review your delivery details, but orders cannot be submitted yet.' : !configured ? 'Delivery charges and fulfilment must be confirmed before ordering opens.' : 'Checkout will open after final payment and courier verification.';
           const checkoutHtml = `<section class="checkout-shell">
             <div class="checkout-heading"><p class="account-eyebrow">SUQAENA · THE SIGNATURE EDIT</p><h1>Secure Checkout</h1><p>Almost yours. Review your delivery details and beautiful selections.</p></div>
-            <div class="checkout-grid">
-              <form id="checkout-country-form" action="/shop/checkout" method="get"></form><div class="checkout-panel"><form method="post" action="/shop/checkout" id="suqaena-order-form"><input type="hidden" name="country" value="${escape(country)}">
+            <form id="checkout-country-form" action="/shop/checkout" method="get"></form><div class="checkout-grid">
+              <div class="checkout-panel"><form method="post" action="/shop/checkout" id="suqaena-order-form"><input type="hidden" name="country" value="${escape(country)}">
                 <div class="checkout-section-heading"><span>01</span><div><h2>Contact Information</h2><p>We'll use these details for your order updates.</p></div></div>
                 <div class="checkout-fields"><label>First name<input type="text" name="first_name" autocomplete="given-name" placeholder="First name"></label><label>Last name<input type="text" name="last_name" autocomplete="family-name" placeholder="Last name"></label><label class="checkout-wide">Email address<input type="email" autocomplete="email" value="${escape(session.email)}" readonly></label><label class="checkout-wide">Mobile number<input type="tel" name="phone" autocomplete="tel" placeholder="+971 50 000 0000"></label></div>
                 <div class="checkout-section-heading"><span>02</span><div><h2>Delivery Address</h2><p>Choose your destination to see the available payment method.</p></div></div>
