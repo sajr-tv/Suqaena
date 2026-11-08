@@ -194,11 +194,11 @@ function commerce(env = process.env) {
           category: 'Ready-to-Wear',
           source: 'https://www.alibaba.com/product-detail/Women-s-Maroon-Embroidered-Traditional-Floor_10000046824214.html',
           images: [],
-          retailPriceAED: 112.18,
+          retailPriceAED: 250,
           displayedSizes: ['M','L','XL'],
           wholesalePriceAED: null,
           supplierContact: null,
-          supplierResearch: {checkedAt:'2026-11-08', supplierPriceStatus:'Not verified; AED 112.18 is the user-specified retail price', shippingOrigin:'India (city not confirmed)', shippingQuoteStatus:'Estimated planning rates only; not a courier quote', estimatedGccShippingAED: {AE:55,SA:70,OM:60,QA:65,KW:70,BH:65}, estimatedTransit:'Approximately 5–12 business days, subject to carrier and customs', codStatus:'Not confirmed with carrier', dutiesTaxes:'Not included; require destination-specific verification'},
+          supplierResearch: {checkedAt:'2026-11-08', supplierPriceStatus:'Not verified; AED 250 is the user-specified retail price', shippingOrigin:'India (city not confirmed)', shippingQuoteStatus:'Estimated planning rates only; not a courier quote', estimatedGccShippingAED: {AE:55,SA:70,OM:60,QA:65,KW:70,BH:65}, estimatedTransit:'Approximately 5–12 business days, subject to carrier and customs', codStatus:'Not confirmed with carrier', dutiesTaxes:'Not included; require destination-specific verification'},
           verificationStatus:'unverified',
           importStatus:'needs-supplier-data',
           fulfilmentStatus:'not-ready',
@@ -209,7 +209,7 @@ function commerce(env = process.env) {
           VALUES ('alibaba','10000046824214',$1::jsonb,false)
           ON CONFLICT(supplier,supplier_id) DO UPDATE SET data =
             shop_products.data || jsonb_build_object(
-              'retailPriceAED',112.18,
+              'retailPriceAED',250,
               'displayedSizes',jsonb_build_array('M','L','XL'),
               'supplierResearch',$2::jsonb
             )`,[JSON.stringify(maroonSuit),JSON.stringify(maroonSuit.supplierResearch)]);
