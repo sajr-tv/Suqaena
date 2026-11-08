@@ -307,6 +307,43 @@ function commerce(env = process.env) {
             ).join('') + `<div class="cart-summary"><h2>Order Summary</h2><p>Subtotal <strong>${money(subtotal)}</strong></p><small>Shipping is calculated at checkout. Orders are only available after supplier stock and delivery arrangements are confirmed.</small><a class="cart-checkout" href="/shop/checkout">Continue to checkout</a></div>` :
               '<div class="cart-empty"><h2>Your shopping bag is empty</h2><p>Discover something beautiful in our latest collection.</p><a class="cart-checkout" href="/shop">Explore collection</a></div>') + '</section>');
         }
+      } else if (path === '/shop/auth/google' && !post) {
+        if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_REDIRECT_URI) throw invalid('Google sign-in is not configured.');
+        const nonce = randomBytes(24).toString('hex');
+        cookie(res, 'shop_google_state', nonce, 600);
+        const params = new URLSearchParams({client_id:env.GOOGLE_CLIENT_ID,redirect_uri:env.GOOGLE_REDIRECT_URI,
+          response_type:'code',scope:'openid email profile',state:nonce,prompt:'select_account'});
+        redirect(res, 'https://accounts.google.com/o/oauth2/v2/auth?' + params);
+        return true;
+      } else if (path === '/shop/auth/google/callback' && !post) {
+        const state = url.searchParams.get('state') || '';
+        const expected = cookies.shop_google_state || '';
+        cookie(res, 'shop_google_state', '', 0);
+        if (!/^[a-f0-9]{48}$/.test(state) || state !== expected || !env.GOOGLE_CLIENT_ID ||
+            !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_REDIRECT_URI || !url.searchParams.get('code')) throw invalid('Google sign-in could not be verified.');
+        const response = await fetch('https://oauth2.googleapis.com/token', {method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:new URLSearchParams({code:url.searchParams.get('code'),client_id:env.GOOGLE_CLIENT_ID,
+            client_secret:env.GOOGLE_CLIENT_SECRET,redirect_uri:env.GOOGLE_REDIRECT_URI,grant_type:'authorization_code'}),
+          signal:AbortSignal.timeout(10000)});
+        if (!response.ok) throw invalid('Google authentication failed.');
+        const tokens = await response.json();
+        if (!tokens.id_token) throw invalid('Google did not provide a valid identity.');
+        const verified = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(tokens.id_token),
+          {signal:AbortSignal.timeout(10000)});
+        if (!verified.ok) throw invalid('Unable to verify Google identity.');
+        const profile = await verified.json();
+        if (profile.aud !== env.GOOGLE_CLIENT_ID || profile.iss !== 'https://accounts.google.com' && profile.iss !== 'accounts.google.com' ||
+            profile.email_verified !== 'true' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email || '')) throw invalid('Google identity is not verified.');
+        const email = profile.email.toLowerCase();
+        if (email === admin) throw invalid('Use the administrator password to sign in.');
+        await query('INSERT INTO shop_users(email,password) VALUES ($1,$2) ON CONFLICT DO NOTHING',[email,'google:oauth']);
+        const newToken = randomBytes(32).toString('hex');
+        if (session) await query('DELETE FROM shop_sessions WHERE token=$1',[digest(token)]);
+        await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)',[digest(newToken),email]);
+        cookie(res,'shop_session',newToken,43200);
+        redirect(res,'/shop/account');
+        return true;
       } else if (path === '/shop/account') {
         if (post) {
           if (get('action') === 'logout') {
