@@ -285,7 +285,10 @@ function commerce(env = process.env) {
       }
 
       const cart = new Map();
-      for (const item of (cookies.shop_cart || '').split(',')) {
+      // Never inherit another account's browser cart: bind it to the authenticated session.
+      const cartOwner = session && token ? digest(token) : '';
+      const trustedCartCookie = Boolean(cartOwner && cookies.shop_cart_owner === cartOwner);
+      for (const item of (trustedCartCookie ? (cookies.shop_cart || '').split(',') : [])) {
         const [key, qty] = item.split(':');
         if ((/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-(leranath-(S|M|L|XL)|maroon-(M|L|XL)|lemon-(M|L|XL|XXL))$/.test(key)) && /^([1-9]|10)$/.test(qty)) cart.set(key, Number(qty));
       }
@@ -298,6 +301,7 @@ function commerce(env = process.env) {
           const variant = row?.data?.variants?.find(v => digest(v.sku) === pending.split('.')[1]);
           if (variant && Number(variant.quantity) > (cart.get(pending) || 0) && (cart.get(pending) || 0) < 10 && cart.size < 30) {
             cart.set(pending, (cart.get(pending) || 0) + 1);
+            cookie(res, 'shop_cart_owner', cartOwner, 604800);
             cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
             await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
             redirect(res, '/shop/cart');
@@ -441,7 +445,8 @@ function commerce(env = process.env) {
         const key = 'preview-' + productCode + '-' + size;
         cart.set(key, Math.min(10, (cart.get(key) || 0) + quantity));
         if (cart.size > 30) throw invalid('Shopping bag limit reached.');
-        cookie(res, 'shop_cart', [...cart].map(([k,n]) => k+':'+n).join(','), 604800);
+        cookie(res, 'shop_cart_owner', cartOwner, 604800);
+            cookie(res, 'shop_cart', [...cart].map(([k,n]) => k+':'+n).join(','), 604800);
         await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
         redirect(res, '/shop/cart');
       } else if (path === '/shop/cart') {
@@ -460,7 +465,8 @@ function commerce(env = process.env) {
             const line = (await lines()).find(item => item.key === key);
             if (!line || quantity > line.variant.quantity || quantity > 10 || cart.size > 30) throw invalid('Quantity unavailable.');
           }
-          cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
+          cookie(res, 'shop_cart_owner', cartOwner, 604800);
+            cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
           if (session) await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
           redirect(res, path);
         } else {
@@ -507,6 +513,8 @@ function commerce(env = process.env) {
         if (session) await query('DELETE FROM shop_sessions WHERE token=$1',[digest(token)]);
         await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)',[digest(newToken),email]);
         cookie(res,'shop_session',newToken,43200);
+        cookie(res,'shop_cart','',0);
+        cookie(res,'shop_cart_owner','',0);
         redirect(res,cookies.shop_pending_variant ? '/shop/cart' : '/shop/account');
         return true;
       } else if (path === '/shop/account') {
@@ -514,6 +522,9 @@ function commerce(env = process.env) {
           if (get('action') === 'logout') {
             if (session) await query('DELETE FROM shop_sessions WHERE token=$1', [digest(token)]);
             cookie(res, 'shop_session', '', 0);
+            cookie(res, 'shop_cart', '', 0);
+            cookie(res, 'shop_cart_owner', '', 0);
+            cookie(res, 'shop_return_to', '', 0);
             cookie(res, 'shop_admin', '', 0);
             redirect(res, path);
             return true;
@@ -552,6 +563,8 @@ function commerce(env = process.env) {
             if (session) await query('DELETE FROM shop_sessions WHERE token=$1', [digest(token)]);
             await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)', [digest(newToken), email]);
             cookie(res, 'shop_session', newToken, 43200);
+            cookie(res, 'shop_cart', '', 0);
+            cookie(res, 'shop_cart_owner', '', 0);
             cookie(res, 'shop_admin', email === admin ? adminSignature(newToken) : '', email === admin ? 43200 : 0);
           } finally {
             activeLogins--;
@@ -629,6 +642,7 @@ function commerce(env = process.env) {
             [id, session.email, { country, paymentMethod:'cod', currency: markets[country], total, items: items.map(({ product, variant, quantity }) =>
               ({ title: product.title, source: product.source, sku: variant.sku, quantity, priceAED: variant.price })) }, 'test']);
           cookie(res, 'shop_cart', '', 0);
+          cookie(res, 'shop_cart_owner', '', 0);
           redirect(res, '/shop/account');
         } else {
           const method = gcc ? 'Cash on Delivery' : 'Credit / Debit Card via Stripe';
