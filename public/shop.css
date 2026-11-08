@@ -31,3 +31,37 @@ label[hidden] { display: none; }
 .grid article::after{content:"View Dress";display:block;margin:15px 15px 0;padding:12px;text-align:center;background:#77142d;color:#fff;border:1px solid #d3ac63;border-radius:6px;font-size:.9rem;font-weight:600;pointer-events:none}
 @media(hover:hover){.grid article::after{transition:background .2s}.grid article:hover::after{background:#a71d40}}
 @media(prefers-reduced-motion:reduce){.grid article,.grid article img{transition:none}.grid article:hover,.grid article:focus-within{transform:none}.grid article:hover img,.grid article:focus-within img{transform:none}}
+
+/* Premium Ready-to-Wear catalogue */
+body:has(.fashion-hero){background:#fffaf7}
+body:has(.fashion-hero) main{max-width:1500px;padding:0 clamp(15px,3vw,55px) 85px}
+body:has(.fashion-hero) main>h1{display:none}
+.fashion-hero{text-align:center;background:linear-gradient(135deg,#fffaf4 0%,#f5e6d9 52%,#fffaf4 100%);border:1px solid #ead7bc;padding:clamp(45px,7vw,105px) 16px;margin:20px 0 42px}
+.fashion-eyebrow,.fashion-heading>span{color:#a77c3a;font:600 12px Arial,sans-serif;letter-spacing:3px}
+.fashion-hero h1{font:normal clamp(42px,7vw,88px) Georgia,serif;color:#75112b;margin:14px 0 0}
+.fashion-hero>p{font:normal clamp(24px,3vw,39px) Georgia,serif;color:#75112b;margin:6px 0 15px}
+.fashion-rule{display:block;width:90px;height:2px;background:#c9a05d;margin:23px auto}
+.fashion-subtitle{font:15px/1.6 Arial,sans-serif;color:#7d6165}
+.fashion-heading{display:flex;justify-content:space-between;align-items:center;margin:0 0 22px;gap:12px;border-bottom:1px solid #e8d9c4;padding-bottom:14px}
+.fashion-heading p{font:13px Arial,sans-serif;color:#80676b;margin:0}
+.fashion-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.fashion-grid .fashion-card{border:1px solid #ead9c5;border-radius:15px;overflow:hidden;background:white;box-shadow:0 4px 15px #61162a13;transition:transform .25s,box-shadow .25s}
+.fashion-grid .fashion-card:hover,.fashion-grid .fashion-card:focus-within{transform:translateY(-7px);box-shadow:0 18px 30px #61162a30}
+.fashion-grid .fashion-image{display:block;overflow:hidden;background:#f6eee8}
+.fashion-grid .fashion-image img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;transition:transform .35s}
+.fashion-grid .fashion-card:hover img{transform:scale(1.05)}
+.fashion-grid .fashion-details{padding:16px}
+.fashion-grid .fashion-details h2{padding:0;margin:0 0 10px;font:normal 18px/1.35 Georgia,serif}
+.fashion-grid .fashion-details h2 a{text-decoration:none;color:#651429}
+.fashion-grid .fashion-price{padding:0;margin:0 0 16px;color:#7c1730;font:700 17px Arial,sans-serif}
+.fashion-grid .fashion-cta{display:block;text-align:center;text-decoration:none;color:#fff;background:#79152d;padding:13px 10px;border:1px solid #d0a55f;border-radius:5px;font:600 14px Arial,sans-serif}
+.fashion-grid .fashion-cta:hover,.fashion-grid .fashion-cta:focus-visible{background:#a32143}
+.fashion-grid .fashion-card::after{display:none}
+.fashion-placeholder{aspect-ratio:3/4;display:grid;place-items:center;color:#80666a}
+.fashion-empty{grid-column:1/-1;text-align:center;padding:60px 15px;background:#fff;border:1px solid #e7d6c1}
+.fashion-empty h2{font:normal 30px Georgia,serif;color:#75112b}
+.fashion-empty p{font:15px/1.7 Arial,sans-serif;color:#79636a}
+.fashion-empty a{display:inline-block;color:#75112b;margin-top:12px}
+@media(max-width:1050px){.fashion-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
+@media(max-width:650px){.fashion-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fashion-grid .fashion-details{padding:11px}.fashion-grid .fashion-details h2{font-size:15px}.fashion-grid .fashion-price{font-size:14px}.fashion-grid .fashion-cta{font-size:12px;padding:11px 4px}.fashion-hero{margin-top:10px;margin-bottom:24px}}
+@media(prefers-reduced-motion:reduce){.fashion-grid .fashion-card,.fashion-grid .fashion-image img{transition:none}.fashion-grid .fashion-card:hover{transform:none}.fashion-grid .fashion-card:hover img{transform:none}}
