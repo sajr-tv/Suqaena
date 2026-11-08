@@ -136,7 +136,14 @@ function commerce(env = process.env) {
     if (!body.includes('class="dress-detail"')) return page(res, title, body, 200, true);
     const fields = [['Printing Method','printingMethod'],['Material','material'],['Place of Origin','origin'],['Age Group','ageGroup'],['Supply Type','supplyType'],['Gender','gender']];
     const panel = `<section class="dress-specifications" aria-label="Product specifications"><h2>Product Specifications</h2><div class="dress-spec-grid">${fields.map(([label,key])=>`<div class="dress-spec-item"><span>${label}</span><strong>${escape(publicLabel(specs[key] || 'To be confirmed'))}</strong></div>`).join('')}</div></section>`;
-    page(res, publicLabel(title), body.replace('</section>', '</section>' + panel), 200, true);
+    const giftOffer = '<aside class="dress-gift-offer" aria-label="Jewellery launch gift"><span class="dress-gift-icon" aria-hidden="true">✦</span><div><strong>Complimentary Matching Jewellery with This Dress</strong><p>A beautiful jewellery gift selected to complement your outfit — included at no extra charge.</p></div></aside>';
+    // All dress pages share this renderer; keep the existing gift panel where present.
+    let detail = body;
+    if (!detail.includes('class="dress-gift-offer"')) {
+      const sizesIndex = detail.indexOf('<fieldset class="dress-sizes">');
+      if (sizesIndex !== -1) detail = detail.slice(0, sizesIndex) + giftOffer + detail.slice(sizesIndex);
+    }
+    page(res, publicLabel(title), detail.replace('</section>', '</section>' + panel), 200, true);
   }
   function page(res, title, body, status = 200, dressLayout = false) {
     res.writeHead(status, {
