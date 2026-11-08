@@ -17,3 +17,17 @@ article { padding: 1rem; border: 1px solid #e9dbce; margin-block: .5rem; }
 img { width: min(100%, 26rem); max-height: 30rem; object-fit: contain; }
 
 label[hidden] { display: none; }
+
+/* SUQAENA collection product gallery */
+.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:clamp(12px,2vw,24px);align-items:stretch}
+.grid article{position:relative;margin:0;padding:0 0 20px;border:1px solid #e9d9c6;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 4px 16px #54132910;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.grid article:hover,.grid article:focus-within{transform:translateY(-7px);box-shadow:0 14px 30px #54132930;border-color:#c49a4a}
+.grid article>a{display:block;text-decoration:none}
+.grid article img{display:block;width:100%;height:auto;aspect-ratio:3/4;max-height:none;object-fit:cover;background:#faf2e8;transition:transform .35s ease}
+.grid article>a{overflow:hidden}
+.grid article:hover img,.grid article:focus-within img{transform:scale(1.045)}
+.grid article h2{font-size:1.02rem;line-height:1.4;padding:0 15px;margin:14px 0 8px}
+.grid article p{font-weight:700;color:#7d1730;padding:0 15px;margin:0}
+.grid article::after{content:"View Dress";display:block;margin:15px 15px 0;padding:12px;text-align:center;background:#77142d;color:#fff;border:1px solid #d3ac63;border-radius:6px;font-size:.9rem;font-weight:600;pointer-events:none}
+@media(hover:hover){.grid article::after{transition:background .2s}.grid article:hover::after{background:#a71d40}}
+@media(prefers-reduced-motion:reduce){.grid article,.grid article img{transition:none}.grid article:hover,.grid article:focus-within{transform:none}.grid article:hover img,.grid article:focus-within img{transform:none}}
