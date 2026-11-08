@@ -500,7 +500,7 @@ function commerce(env = process.env) {
       } else if (path === '/shop/cart') {
         if (post) {
           const key = get('variant');
-          if (!(/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-(leranath-(S|M|L|XL)|maroon-(M|L|XL)|lemon-(M|L|XL|XXL)|cream-(S|M|L|XL|XXL)|blue-(S|M|L|XL|XXL)|purple-(M|L|XL|XXL|XXXL)|pink-(M|L|XL|XXL))$/.test(key))) throw invalid('Invalid variant.');
+          if (!(/^\d{1,9}\.[a-f0-9]{64}$/.test(key) || /^preview-(leranath-(S|M|L|XL)|maroon-(M|L|XL)|lemon-(M|L|XL|XXL)|cream-(S|M|L|XL|XXL)|blue-(S|M|L|XL|XXL)|purple-(M|L|XL|XXL|XXXL)|pink-(M|L|XL|XXL)|white-(S|M|L|XL|XXL)|indigo-(S|M|L|XL|XXL)|rose-(M|L|XL|XXL|XXXL))$/.test(key))) throw invalid('Invalid variant.');
           if (!session) { redirect(res, '/shop/account?mode=register'); return true; }
           if (get('remove')) cart.delete(key);
           else {
