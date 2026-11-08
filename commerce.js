@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS shop_sessions (
   token text PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
   expires timestamptz NOT NULL DEFAULT now() + interval '12 hours'
 );
+CREATE TABLE IF NOT EXISTS shop_saved_carts (email text PRIMARY KEY REFERENCES shop_users(email), items jsonb NOT NULL DEFAULT '{}'::jsonb, updated timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS shop_orders (
   id uuid PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
   data jsonb NOT NULL, status text NOT NULL DEFAULT 'test', tracking text,
@@ -132,7 +133,7 @@ function commerce(env = process.env) {
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
       'Content-Security-Policy': `default-src 'self'; img-src 'self' https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`
     });
-    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css">${dressLayout ? dressHeader : `<header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header>`}<main class="${dressLayout ? 'dress-main' : ''}">${dressLayout ? '' : `<h1>${escape(title)}</h1>`}${body}</main></html>`);
+    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(title)} | SUQAENA</title><link rel="stylesheet" href="/shop.css">${dressLayout ? dressHeader.replace('class="dress-header-actions"', 'class="dress-header-actions"').replace('♡ <small>Account</small>', res.shopInitial ? `<span class="shop-initial">${escape(res.shopInitial)}</span><small>${escape(res.shopFirstName || 'Account')}</small>` : '♡ <small>Account</small>') : `<header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header>`}<main class="${dressLayout ? 'dress-main' : ''}">${dressLayout ? '' : `<h1>${escape(title)}</h1>`}${body}</main></html>`);
   }
   const redirect = (res, location) => res.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }).end();
   const form = (path, body, label) => `<form method="post" action="${path}">${body}<button>${label}</button></form>`;
@@ -203,8 +204,10 @@ function commerce(env = process.env) {
       const cookies = Object.fromEntries((req.headers.cookie || '').split(/; */).map(entry => entry.split('=')));
       const token = cookies.shop_session;
       const session = /^[a-f0-9]{64}$/.test(token || '') ? (await query(
-        'SELECT email FROM shop_sessions WHERE token=$1 AND expires>now()', [digest(token)]
+        'SELECT s.email,u.first_name,u.last_name FROM shop_sessions s JOIN shop_users u ON u.email=s.email WHERE s.token=$1 AND s.expires>now()', [digest(token)]
       )).rows[0] : null;
+      res.shopFirstName = session?.first_name || '';
+      res.shopInitial = session ? ((session.first_name || session.email)[0] || '').toUpperCase() + (session.last_name ? session.last_name[0].toUpperCase() : '') : '';
       const signature = cookies.shop_admin || '';
       const isAdmin = adminEnabled && session?.email === admin && /^[a-f0-9]{64}$/.test(signature) &&
         timingSafeEqual(Buffer.from(signature), Buffer.from(adminSignature(token)));
@@ -238,9 +241,16 @@ function commerce(env = process.env) {
           if (variant && Number(variant.quantity) > (cart.get(pending) || 0) && (cart.get(pending) || 0) < 10 && cart.size < 30) {
             cart.set(pending, (cart.get(pending) || 0) + 1);
             cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
+            await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
             redirect(res, '/shop/cart');
             return true;
           }
+        }
+      }
+      if (session) {
+        const saved = (await query('SELECT items FROM shop_saved_carts WHERE email=$1',[session.email])).rows[0]?.items || {};
+        for (const [key, quantity] of Object.entries(saved)) {
+          if (/^\\d{1,9}\\.[a-f0-9]{64}$/.test(key) && Number.isInteger(quantity) && quantity > 0 && quantity <= 10 && !cart.has(key) && cart.size < 30) cart.set(key,quantity);
         }
       }
       const lines = async () => {
@@ -320,6 +330,7 @@ function commerce(env = process.env) {
             if (!line || quantity > line.variant.quantity || quantity > 10 || cart.size > 30) throw invalid('Quantity unavailable.');
           }
           cookie(res, 'shop_cart', [...cart].map(([key, n]) => `${key}:${n}`).join(','), 604800);
+          if (session) await query('INSERT INTO shop_saved_carts(email,items) VALUES ($1,$2::jsonb) ON CONFLICT(email) DO UPDATE SET items=$2::jsonb,updated=now()', [session.email,JSON.stringify(Object.fromEntries(cart))]);
           redirect(res, path);
         } else {
           const items = await lines();
