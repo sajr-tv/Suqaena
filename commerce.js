@@ -514,6 +514,29 @@ function commerce(env = process.env) {
           Number.isFinite(market.rate) && market.rate > 0 && typeof market.eta === 'string' && market.eta.length > 0;
         const total = configured ? items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0) * market.rate + market.fee : 0;
         if (post) {
+          if (!gcc && stockVerified && env.SUQAENA_CARD_CHECKOUT_ENABLED === 'true' && env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET) {
+            const allowedCountries = (env.SUQAENA_CARD_SHIPPING_AED_JSON || '{}');
+            let rates;
+            try { rates = JSON.parse(allowedCountries); } catch { throw invalid('Shipping configuration unavailable.'); }
+            const shippingAED = rates[country];
+            if (!Number.isSafeInteger(shippingAED) || shippingAED < 0 || shippingAED > 10000) throw invalid('Shipping is not available for this destination.');
+            const address = Object.fromEntries(['first_name','last_name','phone','street','city','region','postal_code'].map(k => [k,get(k).trim()]));
+            if (['first_name','last_name','phone','street','city','region'].some(k => address[k].length < 2 || address[k].length > 150)) throw invalid('Complete your delivery details.');
+            const orderId = randomUUID();
+            const lineItems = items.map(({product,variant,quantity}) => ({name:product.title+' · '+variant.size+' · '+variant.color,quantity,unitMinor:Math.round(variant.price*100)}));
+            const totalMinor = lineItems.reduce((n,x)=>n+x.quantity*x.unitMinor,0)+shippingAED*100;
+            const orderData = {country,paymentMethod:'stripe',currency:'aed',totalMinor,address,items:items.map(({product,variant,quantity})=>({title:product.title,sku:variant.sku,size:variant.size,quantity,unitAED:variant.price}))};
+            await query('INSERT INTO shop_orders(id,email,data,status) VALUES($1,$2,$3,$4)',[orderId,session.email,JSON.stringify(orderData),'initiating_card']);
+            try {
+              const checkout = await stripeCheckout.createCheckout({secret:env.SUQAENA_STRIPE_SECRET_KEY,orderId,email:session.email,items:lineItems,shippingMinor:shippingAED*100,currency:'aed',origin:site});
+              await query("UPDATE shop_orders SET data=jsonb_set(data,'{stripeSessionId}',to_jsonb($2::text)),status='pending_card' WHERE id=$1",[orderId,checkout.id]);
+              redirect(res,checkout.url);
+            } catch(error) {
+              await query("UPDATE shop_orders SET status='card_session_failed' WHERE id=$1 AND status='initiating_card'",[orderId]);
+              throw error;
+            }
+            return true;
+          }
           // No COD or card charge is permitted until courier, stock and payment verification is configured.
           // Existing admin-only test order flow remains isolated from real customer payments.
           if (!stockVerified || !gcc || !configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is pending stock, shipping and payment activation.');
