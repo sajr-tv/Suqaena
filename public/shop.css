@@ -239,3 +239,14 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .dress-spec-item span{font-size:.88rem;color:#756b67}
 .dress-spec-item strong{font-size:1rem;color:#33252a;overflow-wrap:anywhere}
 @media(max-width:650px){.dress-specifications{margin:20px 12px 36px;padding:18px}.dress-spec-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.dress-spec-item:nth-child(3n){border-right:1px solid #e5d9d1}.dress-spec-item:nth-child(2n){border-right:0}}
+
+
+/* Editable shopping bag quantity */
+.cart-quantity-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:14px 0;color:#594a4d}
+.cart-quantity-controls{display:inline-flex;align-items:center;border:1px solid #e4cbd0;border-radius:8px;overflow:hidden;background:#fff}
+.cart-quantity-controls form{margin:0;padding:0;display:flex}
+.cart-quantity-controls button{border:0;background:#fff;color:#71102d;font-size:1.35rem;font-weight:600;width:38px;height:38px;cursor:pointer;line-height:1}
+.cart-quantity-controls button:hover:not(:disabled){background:#f9eef1}
+.cart-quantity-controls button:disabled{opacity:.35;cursor:not-allowed}
+.cart-quantity-controls output{min-width:34px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.cart-quantity-row small{font-size:.86rem;color:#73666a}
