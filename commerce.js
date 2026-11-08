@@ -1,3 +1,4 @@
+const stripeCheckout = require('./stripe-checkout');
 const supplierMemo = require('./supplier-memo');
 const { Pool } = require('pg');
 const { parse } = require('csv-parse/sync');
@@ -200,6 +201,23 @@ function commerce(env = process.env) {
           )`, [JSON.stringify(supplierRecord)]);
       })().catch(error => { ready = undefined; throw error; });
       await ready;
+      if (path === '/shop/stripe/webhook') {
+        if (req.method !== 'POST' || !env.SUQAENA_STRIPE_WEBHOOK_SECRET) { res.writeHead(404).end(); return true; }
+        const chunks=[];let bytes=0;
+        for await (const chunk of req){bytes+=chunk.length;if(bytes>262144){res.writeHead(413).end();return true;}chunks.push(chunk);}
+        const raw=Buffer.concat(chunks).toString('utf8');
+        if(!stripeCheckout.verifyStripeSignature(raw,req.headers['stripe-signature'],env.SUQAENA_STRIPE_WEBHOOK_SECRET)){res.writeHead(400).end();return true;}
+        const event=JSON.parse(raw);
+        if(event.type==='checkout.session.completed' || event.type==='checkout.session.async_payment_succeeded'){
+          const obj=event.data?.object;
+          const orderId=obj?.metadata?.suqaena_order_id;
+          if(/^[0-9a-f-]{36}$/.test(orderId||'') && obj.payment_status==='paid' && obj.currency==='aed'){
+            await query("UPDATE shop_orders SET status='paid' WHERE id=$1 AND status='pending_card' AND data->>'stripeSessionId'=$2 AND ROUND((data->>'totalMinor')::numeric)=$3",[orderId,obj.id,Number(obj.amount_total)]);
+          }
+        }
+        res.writeHead(200,{'Content-Type':'application/json'}).end('{"received":true}');
+        return true;
+      }
       const post = req.method === 'POST';
       if (!post && req.method !== 'GET') { res.writeHead(405).end(); return true; }
       const cookies = Object.fromEntries((req.headers.cookie || '').split(/; */).map(entry => entry.split('=')));
