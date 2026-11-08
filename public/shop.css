@@ -196,3 +196,8 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
  
 .shop-initial{display:inline-flex;align-items:center;justify-content:center;min-width:31px;height:31px;padding:0 4px;border:1px solid #d4af6c;border-radius:50%;background:#751733;color:#fff;font:700 12px Georgia,serif}
 .cart-shell{max-width:1160px;margin:45px auto 90px}.cart-shell h1{font-size:44px}.cart-line{align-items:center;background:#fff;border:1px solid #eee0d5;border-radius:9px;padding:22px 26px;margin:14px 0;box-shadow:0 8px 24px #4e10200a}.cart-line h2{margin:0 0 8px}.cart-line strong{font:700 18px Georgia,serif;color:#741733}.cart-summary{box-shadow:0 12px 30px #4e102011}.cart-empty{background:#fffaf4;border:1px solid #e7d4b6;border-radius:12px}
+
+/* Active collection shopping-bag control */
+.fashion-preview-cart-form .fashion-cart-disabled{opacity:1;cursor:pointer;background:#7b1230;transition:background .2s,transform .2s}
+.fashion-preview-cart-form .fashion-cart-disabled:hover{background:#a22146;transform:translateY(-1px)}
+.fashion-preview-cart-form .fashion-cart-disabled:focus-visible{outline:3px solid #cba052;outline-offset:3px}
