@@ -576,8 +576,8 @@ function commerce(env = process.env) {
             const allowedCountries = (env.SUQAENA_CARD_SHIPPING_AED_JSON || '{}');
             let rates;
             try { rates = JSON.parse(allowedCountries); } catch { throw invalid('Shipping configuration unavailable.'); }
-            const shippingAED = rates[country];
-            if (!Number.isSafeInteger(shippingAED) || shippingAED < 0 || shippingAED > 10000) throw invalid('Shipping is not available for this destination.');
+            if (!Object.hasOwn(rates,country)) throw invalid('Delivery is not available for this destination.');
+            const shippingAED = 0; // SUQAENA customer-facing free delivery policy
             const address = Object.fromEntries(['first_name','last_name','phone','street','city','region','postal_code'].map(k => [k,get(k).trim()]));
             if (['first_name','last_name','phone','street','city','region'].some(k => address[k].length < 2 || address[k].length > 150)) throw invalid('Complete your delivery details.');
             const orderId = randomUUID();
