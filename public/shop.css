@@ -301,3 +301,12 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
   .fashion-grid .fashion-preview .fashion-sizes{min-height:106px;column-gap:4px;row-gap:5px}
   .fashion-grid .fashion-preview .fashion-sizes label span{min-width:29px;min-height:34px;padding:4px 5px;font-size:12px}
 }
+
+/* Uniform Ready-to-Wear card content: prices, size selectors and buttons align. */
+.fashion-grid .fashion-preview{display:flex;flex-direction:column}
+.fashion-grid .fashion-preview .fashion-details{display:flex;flex:1;flex-direction:column;min-width:0}
+.fashion-grid .fashion-preview .fashion-details h2{min-height:calc(1.35em * 3)}
+.fashion-grid .fashion-preview .fashion-sizes{box-sizing:border-box;min-height:82px;margin-top:0;margin-bottom:12px;align-items:flex-start}
+.fashion-grid .fashion-preview .fashion-preview-cart-form{margin-top:auto;width:100%}
+.fashion-grid .fashion-preview .fashion-note{min-height:2.5em;margin-bottom:0}
+@media(max-width:650px){.fashion-grid .fashion-preview .fashion-details h2{min-height:calc(1.35em * 4)}.fashion-grid .fashion-preview .fashion-sizes{min-height:112px}}
