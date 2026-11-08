@@ -38,6 +38,9 @@ COPY suqaena-rose-bloom-anarkali-detail.png ./suqaena-rose-bloom-anarkali-detail
 COPY suqaena-ivory-floral-anarkali-main.png ./suqaena-ivory-floral-anarkali-main.png
 COPY suqaena-ivory-floral-anarkali-side.png ./suqaena-ivory-floral-anarkali-side.png
 COPY suqaena-ivory-floral-anarkali-detail.png ./suqaena-ivory-floral-anarkali-detail.png
+COPY suqaena-ivory-navy-embroidered-main.png ./suqaena-ivory-navy-embroidered-main.png
+COPY suqaena-ivory-navy-embroidered-side.png ./suqaena-ivory-navy-embroidered-side.png
+COPY suqaena-ivory-navy-embroidered-detail.png ./suqaena-ivory-navy-embroidered-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
