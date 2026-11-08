@@ -473,24 +473,41 @@ function commerce(env = process.env) {
         if (!session) { redirect(res, '/shop/account'); return true; }
         const items = await lines();
         if (!items.length || items.length !== cart.size || items.some(line => line.quantity > line.variant.quantity)) throw invalid('Review product availability in your cart.');
-        const country = post ? get('country') : url.searchParams.get('country') || 'AE';
-        if (!Object.hasOwn(markets, country)) throw invalid('Unknown shipping country.');
-        const market = shipping[country];
-        const configured = market && Number.isFinite(market.fee) && market.fee >= 0 &&
+        const selected = post ? get('country') : url.searchParams.get('country') || 'AE';
+        const country = String(selected).toUpperCase();
+        if (!/^[A-Z]{2}$/.test(country) || !new Intl.DisplayNames(['en'], {type:'region'}).of(country) || new Intl.DisplayNames(['en'], {type:'region'}).of(country) === country) throw invalid('Enter a valid two-letter delivery country code.');
+        const gcc = Object.hasOwn(markets, country);
+        const market = gcc ? shipping[country] : null;
+        const configured = gcc && market && Number.isFinite(market.fee) && market.fee >= 0 &&
           Number.isFinite(market.rate) && market.rate > 0 && typeof market.eta === 'string' && market.eta.length > 0;
-        const total = configured ? items.reduce((sum, line) =>
-          sum + line.quantity * line.variant.price, 0) * market.rate + market.fee : 0;
+        const total = configured ? items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0) * market.rate + market.fee : 0;
         if (post) {
-          if (!configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is currently unavailable.');
+          // No COD or card charge is permitted until courier, stock and payment verification is configured.
+          // Existing admin-only test order flow remains isolated from real customer payments.
+          if (!gcc || !configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is pending stock, shipping and payment activation.');
           const id = get('request_id');
-          if (!/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/.test(id)) throw invalid('Invalid checkout request.');
-          await query('INSERT INTO shop_orders(id,email,data) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
-            [id, session.email, { country, currency: markets[country], total, items: items.map(({ product, variant, quantity }) =>
-              ({ title: product.title, source: product.source, sku: variant.sku, quantity, priceAED: variant.price })) }]);
+          if (!/^[a-f\\d]{8}(-[a-f\\d]{4}){3}-[a-f\\d]{12}$/.test(id)) throw invalid('Invalid checkout request.');
+          await query('INSERT INTO shop_orders(id,email,data,status) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING',
+            [id, session.email, { country, paymentMethod:'cod', currency: markets[country], total, items: items.map(({ product, variant, quantity }) =>
+              ({ title: product.title, source: product.source, sku: variant.sku, quantity, priceAED: variant.price })) }, 'test']);
           cookie(res, 'shop_cart', '', 0);
           redirect(res, '/shop/account');
         } else {
-          page(res, 'Checkout', `<form><label>Country<select name="country">${Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('')}</select></label><button>Update shipping</button></form>${configured ? `<p>Shipping ${money(market.fee, markets[country])} · ${escape(market.eta)}</p><p>Total ${money(total, markets[country])}</p>` : '<p>Shipping is pending confirmation for this market.</p>'}${configured && isAdmin && env.SHOP_TEST_CHECKOUT === 'true' ? form(path, `<input type="hidden" name="country" value="${country}"><input type="hidden" name="request_id" value="${randomUUID()}">`, 'Create test order') : '<p>Ordering will open once checkout is ready.</p>'}`);
+          const method = gcc ? 'Cash on Delivery (COD)' : 'Secure card payment via Stripe';
+          const countryInput = '<label>Delivery country <select name="country">' +
+            Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('') +
+            '<option value="OTHER"' + (!gcc ? ' selected' : '') + '>Outside GCC — enter ISO country code below</option></select></label>' +
+            '<label>International destination (two-letter code)<input name="international_country" maxlength="2" placeholder="e.g. GB, US, PK" value="' + (gcc ? '' : escape(country)) + '"></label>';
+          // The international field takes priority when supplied. The URL form uses country directly.
+          page(res, 'Checkout', '<section class="cart-shell"><p class="account-eyebrow">SUQAENA · SECURE ORDERING</p><h1>Checkout</h1>' +
+            '<form method="get" action="/shop/checkout"><label>Delivery destination<select name="country">' +
+            Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('') +
+            '<option value="GB"' + (!gcc && country==='GB' ? ' selected' : '') + '>United Kingdom</option><option value="US"' + (!gcc && country==='US' ? ' selected' : '') + '>United States</option><option value="CA"' + (!gcc && country==='CA' ? ' selected' : '') + '>Canada</option><option value="AU"' + (!gcc && country==='AU' ? ' selected' : '') + '>Australia</option><option value="PK"' + (!gcc && country==='PK' ? ' selected' : '') + '>Pakistan</option></select></label><button>Update delivery destination</button></form>' +
+            '<h2>Payment method</h2><p><strong>' + method + '</strong></p>' +
+            (gcc ? '<p>Payment is collected by the courier on delivery, after your order is confirmed.</p>' : '<p>International orders will use Stripe card checkout after shipping is configured and stock is verified.</p>') +
+            (configured ? `<p>Estimated shipping: ${money(market.fee, markets[country])} · ${escape(market.eta)}</p><p>Estimated total: ${money(total, markets[country])}</p>` : '<p>Shipping cost and delivery time are awaiting confirmation for this destination.</p>') +
+            (gcc && configured && isAdmin && env.SHOP_TEST_CHECKOUT === 'true' ? form(path, `<input type="hidden" name="country" value="${country}"><input type="hidden" name="request_id" value="${randomUUID()}">`, 'Create internal COD test order') : '<p><strong>Orders are not being accepted yet.</strong> Stock and shipping arrangements must be verified before checkout is activated.</p>') +
+            '<p><a href="/shop/cart">← Back to shopping bag</a></p></section>');
         }
       } else if (path === '/shop/admin') {
         if (post) {
