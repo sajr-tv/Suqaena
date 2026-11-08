@@ -167,3 +167,25 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .cart-summary{max-width:430px;margin:30px 0 0 auto;padding:25px;background:#fff8ee;border:1px solid #e4d1b2;border-radius:12px}.cart-summary h2,.cart-empty h2{font:normal 25px Georgia,serif;color:#741331}.cart-summary p{display:flex;justify-content:space-between}.cart-summary small{display:block;margin:15px 0;color:#735e63;line-height:1.6}.cart-empty{text-align:center;padding:70px 20px}.cart-empty .cart-checkout{max-width:260px;margin:24px auto}
 
 .dress-add-auth{display:block;box-sizing:border-box;text-align:center;text-decoration:none;opacity:1;cursor:pointer}.dress-add-auth:hover{background:#59102a;color:#fff}.fashion-cart-auth{display:block;text-align:center;text-decoration:none;cursor:pointer;opacity:1}
+
+/* Luxury customer access */
+.account-luxury{max-width:none;margin:0;padding:64px 20px 90px;background:radial-gradient(ellipse at top,#fff9ed 0%,#fdf9f5 54%,#f7edf0 100%);min-height:70vh}
+.account-luxury .account-panel{max-width:460px;padding:44px 48px 34px;text-align:center;background:#fff;border:1px solid #e4cda7;border-radius:3px;box-shadow:0 20px 60px #5b1a2a13}
+.account-crest{display:flex;align-items:center;justify-content:center;width:62px;height:62px;margin:0 auto 22px;border:1px solid #c69a4f;border-radius:50%;color:#a77d3d;font:italic 25px Georgia,serif}
+.account-luxury .account-eyebrow{font-size:10px;letter-spacing:2.6px}
+.account-luxury h1{font:normal 38px/1.2 Georgia,serif;margin:12px 0;color:#711b35}
+.account-luxury .account-subtitle{max-width:335px;margin:0 auto 27px;line-height:1.8}
+.account-google{display:flex;align-items:center;justify-content:center;gap:12px;min-height:48px;border:1px solid #d9c8c4;border-radius:5px;color:#3e2930;text-decoration:none;background:#fff;font:600 14px Arial,sans-serif}
+.account-google:hover{border-color:#a87a3c;background:#fffaf4}
+.account-google-pending{font:12px/1.6 Arial,sans-serif;color:#8b7075;padding:12px;border:1px dashed #e0d3d1}
+.account-divider{position:relative;margin:25px 0 15px;font:12px Arial,sans-serif;color:#978185}
+.account-divider:before{content:"";position:absolute;top:50%;left:0;right:0;border-top:1px solid #e8dddd}
+.account-divider span{position:relative;background:#fff;padding:0 14px}
+.account-luxury .account-field{display:block;text-align:left;font:600 12px/1.6 Arial,sans-serif;color:#5a3c46;margin:15px 0}
+.account-luxury .account-field input{height:49px;padding:12px 14px;border-radius:4px}
+.account-luxury .account-password-toggle{justify-content:flex-start;text-align:left;margin:13px 0 21px;color:#6d555c}
+.account-luxury form button{border-radius:4px;min-height:49px;letter-spacing:.5px}
+.account-luxury .account-switch{margin-top:24px}
+.account-luxury .account-back{margin-top:19px}
+.account-privacy{margin:24px 0 0;padding-top:18px;border-top:1px solid #eee2dc;color:#a18d8d;font:11px/1.7 Arial,sans-serif}
+@media(max-width:560px){.account-luxury{padding:28px 12px 50px}.account-luxury .account-panel{padding:30px 22px}.account-luxury h1{font-size:32px}}
