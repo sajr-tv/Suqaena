@@ -358,13 +358,13 @@ function commerce(env = process.env) {
               <p class="dress-price">AED 75.00</p>
               <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p><aside class="dress-gift-offer" aria-label="Jewellery launch gift"><span class="dress-gift-icon" aria-hidden="true">✦</span><div><strong>Complimentary Matching Jewellery with This Dress</strong><p>A beautiful jewellery gift selected to complement your yellow ensemble — included at no extra charge.</p></div></aside>
               <fieldset class="dress-sizes"><legend>Choose your size</legend>
-                <label><input type="radio" name="dress-size" value="S"><span>S</span></label>
-                <label><input type="radio" name="dress-size" value="M"><span>M</span></label>
-                <label><input type="radio" name="dress-size" value="L"><span>L</span></label>
-                <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="S"><span>S</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="M"><span>M</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="L"><span>L</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="XL"><span>XL</span></label>
               </fieldset>
               <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
-              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
+              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
               <p class="dress-status">Save this dress to your shopping bag. Checkout opens after supplier stock and measurements are verified.</p>
               <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
               <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
@@ -386,12 +386,12 @@ function commerce(env = process.env) {
               <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p>
               <fieldset class="dress-sizes"><legend>Choose your size</legend>
                 
-                <label><input type="radio" name="dress-size" value="M"><span>M</span></label>
-                <label><input type="radio" name="dress-size" value="L"><span>L</span></label>
-                <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="M"><span>M</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="L"><span>L</span></label>
+                <label><input type="radio" name="size" form="dress-preview-form" required value="XL"><span>XL</span></label>
               </fieldset>
               <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
-              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="product" value="maroon"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
+              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="product" value="maroon"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
               <p class="dress-status">Save this dress to your shopping bag. Checkout opens after supplier stock and measurements are verified.</p>
               <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
               <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
