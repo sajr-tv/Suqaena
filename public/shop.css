@@ -201,3 +201,9 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .fashion-preview-cart-form .fashion-cart-disabled{opacity:1;cursor:pointer;background:#7b1230;transition:background .2s,transform .2s}
 .fashion-preview-cart-form .fashion-cart-disabled:hover{background:#a22146;transform:translateY(-1px)}
 .fashion-preview-cart-form .fashion-cart-disabled:focus-visible{outline:3px solid #cba052;outline-offset:3px}
+
+/* Compact product photography in shopping bag */
+.cart-line{display:flex;align-items:flex-start;gap:18px}
+.cart-line .cart-product-thumb{width:92px;height:116px;flex:0 0 92px;object-fit:cover;object-position:center top;border:1px solid #ead8bf;border-radius:9px;background:#fff9f4}
+.cart-line>div:nth-child(2){flex:1;min-width:0}
+@media(max-width:560px){.cart-line{gap:12px;flex-wrap:wrap}.cart-line .cart-product-thumb{width:74px;height:96px;flex-basis:74px}.cart-line>div:last-child{margin-left:auto}}
