@@ -372,6 +372,33 @@ function commerce(env = process.env) {
           </section>
           <script src="/shop-gallery.js" defer></script>
         `);
+      } else if (path === '/shop/dress/maroon-embroidered' && !post) {
+        dressPage(res, 'Maroon Embroidered Shalwar Suit with Dupatta', `
+          <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop?category=Ready-to-Wear">Ready to Wear</a> / Maroon Embroidered Suit</nav>
+          <section class="dress-detail">
+            <div class="dress-gallery"><div class="dress-thumbnails"><button class="dress-thumb is-active" type="button" data-photo="/suqaena-maroon-embroidered-suit.png" data-alt="Front view of maroon shalwar suit" aria-label="View front of dress" aria-pressed="true"><img src="/suqaena-maroon-embroidered-suit.png" alt="Front dress view"></button><button class="dress-thumb" type="button" data-photo="/suqaena-maroon-embroidered-suit-side.png" data-alt="AI-generated side view of maroon shalwar suit" aria-label="View side of dress" aria-pressed="false"><img src="/suqaena-maroon-embroidered-suit-side.png" alt="Side dress view"></button><button class="dress-thumb" type="button" data-photo="/suqaena-maroon-embroidered-suit-detail.png" data-alt="AI-generated waist-up embroidery detail of maroon suit" aria-label="View embroidery detail" aria-pressed="false"><img src="/suqaena-maroon-embroidered-suit-detail.png" alt="Embroidery close-up view"></button></div><div class="dress-photo" id="dress-photo"><img id="dress-main-image" src="/suqaena-maroon-embroidered-suit.png" alt="Leranath maroon embroidered shalwar suit on SUQAENA model" loading="eager"><span class="dress-zoom-hint">Hover or tap to zoom</span></div></div>
+            <div class="dress-info">
+              <div class="dress-eyebrow">SUQAENA · READY TO WEAR</div>
+              <h1>Maroon Embroidered Shalwar Suit with Dupatta (3-Piece)</h1>
+              <p class="dress-price">AED 250.00</p>
+              <p class="dress-includes">Includes: Kameez + Trousers + Dupatta</p>
+              <fieldset class="dress-sizes"><legend>Choose your size</legend>
+                
+                <label><input type="radio" name="dress-size" value="M"><span>M</span></label>
+                <label><input type="radio" name="dress-size" value="L"><span>L</span></label>
+                <label><input type="radio" name="dress-size" value="XL"><span>XL</span></label>
+              </fieldset>
+              <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
+              <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="size" id="dress-cart-size"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
+              <p class="dress-status">Save this dress to your shopping bag. Checkout opens after supplier stock and measurements are verified.</p>
+              <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ GCC delivery options</span><span>✦ Delivery fees confirmed at checkout</span></div>
+              <details><summary>Product Details</summary><p>Yellow embroidered three-piece shalwar suit with matching trousers and dupatta. Product specifications pending supplier verification.</p></details>
+              <details><summary>Size Guide</summary><p>Sizes M, L and XL are planned. Exact garment measurements will be published after supplier confirmation.</p></details>
+              <details><summary>Delivery & Returns</summary><p>Delivery costs, delivery estimates and applicable returns terms will be shown before an order is accepted.</p></details>
+            </div>
+          </section>
+          <script src="/shop-gallery.js" defer></script>
+        `);
       } else if (/^\/shop\/product\/\d{1,9}$/.test(path) && !post) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
