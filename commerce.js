@@ -373,7 +373,7 @@ function commerce(env = process.env) {
               const result = await query('INSERT INTO shop_users VALUES ($1,$2) ON CONFLICT DO NOTHING',
                 [email, `${newSalt}:${actual.toString('hex')}`]);
               if (!result.rowCount) throw invalid('Unable to register. Try signing in.');
-            } else if (!hash || !timingSafeEqual(actual, Buffer.from(hash, 'hex'))) {
+            } else if (!/^[a-f0-9]{128}$/.test(hash || '') || !timingSafeEqual(actual, Buffer.from(hash, 'hex'))) {
               throw invalid('Invalid credentials.');
             }
             const newToken = randomBytes(32).toString('hex');
