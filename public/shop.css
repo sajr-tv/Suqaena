@@ -87,3 +87,27 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .fashion-preview .fashion-sizes input:checked+span{background:#790c2a;color:#fff;border-color:#d7a848;box-shadow:0 0 0 2px #d7a848}
 .fashion-preview .fashion-sizes input:focus-visible+span{outline:3px solid #b9872b;outline-offset:3px}
 .fashion-cart-disabled{width:100%;padding:13px 8px;background:#74122d;color:#fff;border:1px solid #cba052;border-radius:7px;font:700 14px Arial,sans-serif;opacity:.65;cursor:not-allowed}
+
+/* SUQAENA signature product detail */
+.dress-breadcrumb{max-width:1250px;margin:20px auto 24px;padding:0 20px;font:13px Arial,sans-serif;color:#765b54}
+.dress-breadcrumb a{color:#801331;text-decoration:none}
+.dress-detail{max-width:1250px;margin:0 auto 60px;padding:0 20px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:42px;align-items:start}
+.dress-photo{position:relative;overflow:hidden;border-radius:15px;border:1px solid #e0c596;background:#f7ede5}
+.dress-photo img{width:100%;height:auto;display:block;transition:transform .5s ease}
+.dress-photo:hover img{transform:scale(1.12)}
+.dress-zoom-hint{position:absolute;right:14px;bottom:14px;background:#fffef2e8;color:#7a1732;border-radius:20px;padding:8px 13px;font:12px Arial,sans-serif}
+.dress-info{min-width:0}.dress-eyebrow{font:700 12px Arial,sans-serif;letter-spacing:2px;color:#b48a40;margin:6px 0 12px}
+.dress-info h1{font:normal clamp(28px,3vw,43px)/1.15 Georgia,serif;color:#79102c;margin:0 0 15px}
+.dress-price{font:700 35px Georgia,serif;color:#79102c;margin:10px 0}.dress-includes{font:16px Georgia,serif;color:#53352f}
+.dress-sizes{border:0;padding:0;margin:27px 0 18px;display:flex;gap:9px;flex-wrap:wrap}
+.dress-sizes legend{font:700 16px Georgia,serif;color:#79102c;margin-bottom:12px}
+.dress-sizes label{position:relative;cursor:pointer}.dress-sizes input{position:absolute;opacity:0}
+.dress-sizes label span{display:grid;place-items:center;min-width:55px;min-height:45px;border:1px solid #b98940;border-radius:8px;color:#79102c;background:white;font:700 16px Arial,sans-serif;transition:all .2s}
+.dress-sizes label:hover span,.dress-sizes input:checked+span{background:#79102c;color:white;box-shadow:0 0 0 2px #d2aa62;transform:translateY(-2px)}
+.dress-sizes input:focus-visible+span{outline:3px solid #c39a51;outline-offset:3px}
+.dress-qty{display:flex;align-items:center;justify-content:space-between;margin:18px 0;font:700 16px Georgia,serif;color:#79102c}
+.dress-qty>div{display:flex;align-items:center;border:1px solid #d2aa62;border-radius:9px;overflow:hidden}.dress-qty button{border:0;background:#fff7ec;color:#79102c;font:25px Arial,sans-serif;cursor:pointer;padding:9px 18px}.dress-qty button:hover{background:#79102c;color:white}.dress-qty output{min-width:38px;text-align:center;font:700 16px Arial,sans-serif}
+.dress-add{width:100%;border:1px solid #c49a56;background:#79102c;color:white;border-radius:9px;padding:17px 12px;font:700 15px Arial,sans-serif;opacity:.62;cursor:not-allowed}
+.dress-status{color:#85676d;font:13px/1.5 Arial,sans-serif}.dress-trust{display:flex;flex-wrap:wrap;gap:10px;margin:25px 0;color:#866337;font:12px Arial,sans-serif}
+.dress-info details{border-top:1px solid #e4d2b5;padding:17px 0;color:#563b3b}.dress-info details:last-child{border-bottom:1px solid #e4d2b5}.dress-info summary{cursor:pointer;color:#79102c;font:700 19px Georgia,serif}.dress-info details p{font:14px/1.6 Arial,sans-serif}
+@media(max-width:760px){.dress-detail{grid-template-columns:1fr;gap:20px;padding:0 14px}.dress-breadcrumb{padding:0 14px}.dress-photo img{max-height:650px;object-fit:contain}.dress-info h1{font-size:29px}.dress-photo:hover img{transform:none}}
