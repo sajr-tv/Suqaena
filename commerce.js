@@ -269,7 +269,8 @@ function commerce(env = process.env) {
       const lines = async () => {
         const ids = [...cart.keys()].map(key => Number(key.split('.')[0]));
         const products = (await query('SELECT id,data FROM shop_products WHERE published AND id=ANY($1::integer[])', [ids])).rows;
-        return [...cart].flatMap(([key, quantity]) => {\n          if (/^preview-leranath-(S|M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
+        return [...cart].flatMap(([key, quantity]) => {
+          if (/^preview-leranath-(S|M|L|XL)$/.test(key)) return [{key,quantity,product:previewProduct,variant:{size:key.split('-').at(-1),color:'Yellow',price:75,quantity:0,sku:key},preview:true}];
           const [id, variantKey] = key.split('.');
           const product = products.find(row => row.id === Number(id))?.data;
           const variant = product?.variants.find(v => digest(v.sku) === variantKey);
