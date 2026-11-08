@@ -525,7 +525,7 @@ function commerce(env = process.env) {
                 <div class="checkout-fields"><label>First name<input type="text" autocomplete="given-name" placeholder="First name"></label><label>Last name<input type="text" autocomplete="family-name" placeholder="Last name"></label><label class="checkout-wide">Email address<input type="email" autocomplete="email" value="${escape(session.email)}" readonly></label><label class="checkout-wide">Mobile number<input type="tel" autocomplete="tel" placeholder="+971 50 000 0000"></label></div>
                 <div class="checkout-section-heading"><span>02</span><div><h2>Delivery Address</h2><p>Choose your destination to see the available payment method.</p></div></div>
                 <form action="/shop/checkout" method="get" class="checkout-country"><label>Country / Region<select name="country">${destinationOptions}</select></label><button type="submit">Update country</button></form>
-                <div class="checkout-fields"><label class="checkout-wide">Street address<input autocomplete="street-address" placeholder="Building, street and apartment"></label><label>City<input autocomplete="address-level2" placeholder="City"></label><label>State / Emirate<input autocomplete="address-level1" placeholder="State or emirate"></label><label class="checkout-wide">Postal code (if applicable)<input autocomplete="postal-code" placeholder="Postal code"></label><label class="checkout-wide">Delivery notes (optional)<textarea rows="3" placeholder="Landmark or special delivery instructions"></textarea></label></div>
+                <div class="checkout-fields"><label class="checkout-wide">Street address<input autocomplete="street-address" placeholder="Building, street and apartment"></label><label>City<input autocomplete="address-level2" placeholder="City"></label><label><span id="checkout-region-label">State / Emirate</span><input id="checkout-region" name="region" autocomplete="address-level1" placeholder="State or emirate"></label><label class="checkout-wide">Postal code (if applicable)<input autocomplete="postal-code" placeholder="Postal code"></label><label class="checkout-wide">Delivery notes (optional)<textarea rows="3" placeholder="Landmark or special delivery instructions"></textarea></label></div>
                 <div class="checkout-section-heading"><span>03</span><div><h2>Payment Method</h2><p>Selected automatically from your delivery destination.</p></div></div>
                 <div class="checkout-payment"><span class="checkout-payment-icon">${gcc ? '✦' : '▣'}</span><div><strong>${method}</strong><small>${gcc ? 'Pay your courier when your order arrives.' : 'Secure online card payment will be handled by Stripe.'}</small></div><span class="checkout-selected">Selected</span></div>
                 <p class="checkout-note">Payment collection is not active while supplier stock and delivery arrangements are being verified.</p>
@@ -538,7 +538,7 @@ function commerce(env = process.env) {
               </aside>
             </div>
           </section>`;
-          dressPage(res, 'Secure Checkout', checkoutHtml);
+          dressPage(res, 'Secure Checkout', checkoutHtml + '<script src="/checkout-regions.js" defer></script>');
         }
       } else if (path === '/shop/admin') {
         if (post) {
