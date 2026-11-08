@@ -26,6 +26,9 @@ COPY suqaena-purple-anarkali-detail.png ./suqaena-purple-anarkali-detail.png
 COPY suqaena-pink-anarkali-main.png ./suqaena-pink-anarkali-main.png
 COPY suqaena-pink-anarkali-side.png ./suqaena-pink-anarkali-side.png
 COPY suqaena-pink-anarkali-detail.png ./suqaena-pink-anarkali-detail.png
+COPY suqaena-white-floral-anarkali-main.png ./suqaena-white-floral-anarkali-main.png
+COPY suqaena-white-floral-anarkali-side.png ./suqaena-white-floral-anarkali-side.png
+COPY suqaena-white-floral-anarkali-detail.png ./suqaena-white-floral-anarkali-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
