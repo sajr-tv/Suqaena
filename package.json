@@ -1,1 +1,1 @@
-{"name":"suqaena-storefront","version":"0.1.0","private":true,"scripts":{"start":"node server.js"},"engines":{"node":">=20"}}
+{"name":"suqaena-storefront","version":"0.1.0","private":true,"scripts":{"start":"node server.js","test":"node --test test/*.test.js"},"engines":{"node":">=20"},"dependencies":{"csv-parse":"^7.0.3","pg":"^8.23.1"}}
