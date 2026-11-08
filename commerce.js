@@ -353,16 +353,22 @@ function commerce(env = process.env) {
           page(res, 'Your account', `<p>${escape(session.email)}</p>${isAdmin ? '<a href="/shop/admin">Supplier dashboard</a>' : ''}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign out')}<h2>Orders</h2>${orders.map(order => `<p>${order.id} · ${escape(order.status)} ${escape(order.tracking)}</p>`).join('')}`);
         } else {
           const registering = url.searchParams.get('mode') === 'register';
-          const credentials = input('email', 'Email', 'email') + input('password', 'Password (12 characters minimum)', 'password') +
+          const credentials = '<label class="account-field">Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required></label>' +
+            '<label class="account-field">Password<input name="password" type="password" autocomplete="' + (registering ? 'new-password' : 'current-password') + '" minlength="12" maxlength="128" placeholder="At least 12 characters" required></label>' +
             '<label class="account-password-toggle"><input type="checkbox" data-show-password> Show password</label>';
-          const body = '<section class="account-shell"><div class="account-panel"><p class="account-eyebrow">WELCOME TO SUQAENA</p><h1>' +
-            (registering ? 'Create your account' : 'Welcome back') + '</h1><p class="account-subtitle">' +
-            (registering ? 'Join SUQAENA to save your details and follow your orders.' : 'Sign in to view your orders and continue shopping.') +
-            '</p>' + form(path, credentials + (registering ? '<input type="hidden" name="action" value="register">' : ''),
-            registering ? 'Create account' : 'Sign in') + '<p class="account-switch">' +
-            (registering ? 'Already have an account? <a href="/shop/account">Sign in</a>' :
-              'New to SUQAENA? <a href="/shop/account?mode=register">Create an account</a>') +
-            '</p><p class="account-back"><a href="/shop">Continue shopping</a></p></div></section><script src="/account.js" defer></script>';
+          const googleEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REDIRECT_URI);
+          const googleButton = googleEnabled ? '<a class="account-google" href="/shop/auth/google"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.75 7.18l7.73 6C44.43 38.03 46.98 31.88 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.2A23.87 23.87 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6C30.03 37.65 27.29 38.5 24 38.5c-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</a>' :
+            '<p class="account-google-pending">Google sign-in will be available once secure Google authentication is connected.</p>';
+          const body = '<section class="account-shell account-luxury"><div class="account-panel"><div class="account-crest">SQ</div><p class="account-eyebrow">THE SUQAENA EXPERIENCE</p><h1>' +
+            (registering ? 'Join Our World' : 'Welcome Back') + '</h1><p class="account-subtitle">' +
+            (registering ? 'Create your account to enjoy a more personal shopping experience.' : 'Your curated collection awaits. Sign in to continue.') +
+            '</p>' + googleButton + '<div class="account-divider"><span>or continue with email</span></div>' +
+            form(path, credentials + (registering ? '<input type="hidden" name="action" value="register">' : ''),
+            registering ? 'Create My Account' : 'Sign In') + '<p class="account-switch">' +
+            (registering ? 'Already part of SUQAENA? <a href="/shop/account">Sign In</a>' :
+              'New to SUQAENA? <a href="/shop/account?mode=register">Create an Account</a>') +
+            '</p><p class="account-back"><a href="/shop">← Back to the collection</a></p>' +
+            '<p class="account-privacy">Your information is protected and used only to manage your SUQAENA shopping experience.</p></div></section><script src="/account.js" defer></script>';
           dressPage(res, registering ? 'Create account' : 'Sign in', body);
         }
       } else if (path === '/shop/checkout') {
