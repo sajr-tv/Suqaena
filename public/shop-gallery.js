@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded',()=>{const main=document.getElementById('dress-main-image'),p=document.getElementById('dress-photo');if(!main||!p)return;const o=document.getElementById('dress-quantity');document.getElementById('dress-minus')?.addEventListener('click',()=>o.textContent=Math.max(1,Number(o.textContent)-1));document.getElementById('dress-plus')?.addEventListener('click',()=>o.textContent=Math.min(10,Number(o.textContent)+1));document.querySelectorAll('.dress-thumb').forEach(b=>b.addEventListener('click',()=>{main.src=b.dataset.photo;main.alt=b.dataset.alt;document.querySelectorAll('.dress-thumb').forEach(x=>{x.classList.toggle('is-active',x===b);x.setAttribute('aria-pressed',String(x===b))});p.classList.remove('is-zoomed')}));p.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=p.getBoundingClientRect();p.style.setProperty('--zoom-x',((e.clientX-r.left)/r.width*100)+'%');p.style.setProperty('--zoom-y',((e.clientY-r.top)/r.height*100)+'%')});p.addEventListener('click',()=>p.classList.toggle('is-zoomed'))});
-document.getElementById('dress-preview-form')?.addEventListener('submit',event=>{const selected=document.querySelector('input[name="dress-size"]:checked');if(!selected){event.preventDefault();window.alert('Please choose your size first.');return;}document.getElementById('dress-cart-size').value=selected.value;document.getElementById('dress-cart-quantity').value=document.getElementById('dress-quantity')?.textContent||'1';});
+document.addEventListener('DOMContentLoaded',()=>{
+  const form=document.getElementById('dress-preview-form');
+  if(!form)return;
+  form.addEventListener('submit',event=>{
+    const selected=document.querySelector('input[name="dress-size"]:checked');
+    if(!selected){event.preventDefault();window.alert('Please choose your size first.');return;}
+    const sizeInput=document.getElementById('dress-cart-size');
+    const qtyInput=document.getElementById('dress-cart-quantity');
+    if(!sizeInput||!qtyInput){event.preventDefault();window.alert('Unable to add item. Please refresh the page.');return;}
+    sizeInput.value=selected.value;
+    qtyInput.value=document.getElementById('dress-quantity')?.textContent||'1';
+  });
+});
 
 document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.fashion-preview-cart-form').forEach(form=>form.addEventListener('submit',event=>{const size=form.closest('.fashion-preview')?.querySelector('input[name="preview-size"]:checked');if(!size){event.preventDefault();window.alert('Please select a size first.');return;}form.querySelector('input[name="size"]').value=size.value;}));});
