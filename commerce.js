@@ -230,7 +230,7 @@ function commerce(env = process.env) {
               <details><summary>Delivery & Returns</summary><p>Delivery costs, delivery estimates and applicable returns terms will be shown before an order is accepted.</p></details>
             </div>
           </section>
-          <script>(function(){const o=document.getElementById('dress-quantity');document.getElementById('dress-minus').addEventListener('click',()=>o.textContent=Math.max(1,Number(o.textContent)-1));document.getElementById('dress-plus').addEventListener('click',()=>o.textContent=Math.min(10,Number(o.textContent)+1));const main=document.getElementById('dress-main-image');document.querySelectorAll('.dress-thumb').forEach(b=>b.addEventListener('click',()=>{main.src=b.dataset.photo;main.alt=b.dataset.alt;document.querySelectorAll('.dress-thumb').forEach(x=>{x.classList.toggle('is-active',x===b);x.setAttribute('aria-pressed',String(x===b))});document.getElementById('dress-photo').classList.remove('is-zoomed')}));const p=document.getElementById('dress-photo');p.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=p.getBoundingClientRect();p.style.setProperty('--zoom-x',((e.clientX-r.left)/r.width*100)+'%');p.style.setProperty('--zoom-y',((e.clientY-r.top)/r.height*100)+'%')});p.addEventListener('click',()=>p.classList.toggle('is-zoomed'));})();</script>
+          <script src="/shop-gallery.js" defer></script>
         `);
       } else if (/^\/shop\/product\/\d{1,9}$/.test(path) && !post) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
