@@ -6,6 +6,7 @@ RUN npm ci --omit=dev
 COPY server.js commerce.js ./
 COPY public ./public
 COPY suqaena-leranath-yellow-suit.png ./suqaena-leranath-yellow-suit.png
+COPY suqaena-leranath-yellow-suit-side.png ./suqaena-leranath-yellow-suit-side.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
