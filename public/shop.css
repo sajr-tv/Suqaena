@@ -250,3 +250,17 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .cart-quantity-controls button:disabled{opacity:.35;cursor:not-allowed}
 .cart-quantity-controls output{min-width:34px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
 .cart-quantity-row small{font-size:.86rem;color:#73666a}
+
+
+/* Keep the complete gold SQ SUQAENA mark visible on collection thumbnails.
+   Both source photographs place the logo near the upper-right edge. */
+.fashion-grid .fashion-card:has(a[href="/shop/dress/purple-anarkali"]) .fashion-image img,
+.fashion-grid .fashion-card:has(a[href="/shop/dress/pink-anarkali"]) .fashion-image img{
+  object-fit:contain;
+  object-position:center center;
+  background:#faf6f1;
+}
+.fashion-grid .fashion-card:has(a[href="/shop/dress/purple-anarkali"]):hover .fashion-image img,
+.fashion-grid .fashion-card:has(a[href="/shop/dress/pink-anarkali"]):hover .fashion-image img{
+  transform:none;
+}
