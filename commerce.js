@@ -405,7 +405,24 @@ function commerce(env = process.env) {
         const row = (await query('SELECT id,data FROM shop_products WHERE id=$1 AND published', [path.split('/').pop()])).rows[0];
         if (!row) { page(res, 'Product unavailable', '', 404); return true; }
         const { id, data } = row;
-        dressPage(res, data.title, `${data.images.map(src => `<img alt="${escape(data.title)}" src="${escape(src)}">`).join('')}<p>${escape(data.description)}</p><p>${escape(data.fabric)} · ${escape(data.specifications)}</p>${form('/shop/cart', `<label>Size and color<select name="variant" required>${data.variants.map(v => `<option value="${id}.${digest(v.sku)}" ${v.quantity ? '' : 'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${v.quantity ? '' : ' · Sold out'}</option>`).join('')}</select></label>`, 'Add to cart')}`);
+        const photos = (Array.isArray(data.images) ? data.images : []).filter(src => typeof src === 'string' && src.startsWith('/') && !src.includes('"')).slice(0,3);
+        const variants = Array.isArray(data.variants) ? data.variants : [];
+        const sizes = [...new Set(variants.map(v => String(v.size || '')).filter(Boolean))];
+        const price = Math.min(...variants.map(v => Number(v.price)).filter(n => Number.isFinite(n) && n > 0));
+        const main = photos[0] || '';
+        const thumbs = photos.map((src,i)=>`<button class="dress-thumb ${i===0?'is-active':''}" type="button" data-photo="${escape(src)}" data-alt="${escape(data.title)} view ${i+1}" aria-label="View product image ${i+1}" aria-pressed="${i===0?'true':'false'}"><img src="${escape(src)}" alt="${escape(data.title)} view ${i+1}"></button>`).join('');
+        const options = variants.map(v=>`<option value="${id}.${digest(v.sku)}" ${Number(v.quantity)>0?'':'disabled'}>${escape(v.size)} · ${escape(v.color)} · ${money(v.price)}${Number(v.quantity)>0?'':' · Unavailable'}</option>`).join('');
+        dressPage(res, data.title, `
+          <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop?category=${encodeURIComponent(data.category||'Ready-to-Wear')}">${escape(data.category||'Ready-to-Wear')}</a> / ${escape(data.title)}</nav>
+          <section class="dress-detail"><div class="dress-gallery"><div class="dress-thumbnails">${thumbs}</div><div class="dress-photo" id="dress-photo">${main?`<img id="dress-main-image" src="${escape(main)}" alt="${escape(data.title)}" loading="eager">`:'<div class="fashion-placeholder">Product photograph coming soon</div>'}<span class="dress-zoom-hint">Hover or tap to zoom</span></div></div>
+          <div class="dress-info"><div class="dress-eyebrow">SUQAENA · ${escape(data.category||'READY TO WEAR')}</div><h1>${escape(data.title)}</h1><p class="dress-price">${Number.isFinite(price)?money(price):'Price on request'}</p><p class="dress-includes">${escape(data.includedItems||'Beautifully curated SUQAENA collection')}</p>
+          <form method="post" action="/shop/cart" id="product-purchase-form"><label for="product-variant">Choose your size and colour</label><select id="product-variant" name="variant" required><option value="" selected disabled>Select size and colour</option>${options}</select><button type="submit" class="dress-add" ${variants.some(v=>Number(v.quantity)>0)?'':'disabled'}>Add to Shopping Bag</button></form>
+          <p class="dress-status">Free delivery · ${escape(data.deliveryMessage||'Delivery availability confirmed at checkout')}</p>
+          <div class="dress-trust"><span>✦ SUQAENA curated collection</span><span>✦ Free delivery</span><span>✦ Secure checkout</span></div>
+          <details><summary>Product details</summary><p>${escape(data.description||'')}</p></details><details><summary>Fabric and care</summary><p>${escape(data.fabric||'Fabric details available on request')}</p></details></div></section>
+          <script src="/shop-gallery.js" defer></script>
+        `);
+
       } else if (path === '/shop/cart/preview' && post) {
         const size = get('size');
         const quantity = Number(get('quantity'));
