@@ -485,7 +485,8 @@ function commerce(env = process.env) {
       } else if (path === '/shop/checkout') {
         if (!session) { redirect(res, '/shop/account'); return true; }
         const items = await lines();
-        if (!items.length || items.length !== cart.size || items.some(line => line.quantity > line.variant.quantity)) throw invalid('Review product availability in your cart.');
+        if (!items.length || items.length !== cart.size) throw invalid('Your shopping bag is empty or needs review.');
+        const stockVerified = items.every(line => !line.preview && line.quantity <= line.variant.quantity);
         const selected = post ? get('country') : url.searchParams.get('country') || 'AE';
         const country = String(selected).toUpperCase();
         if (!/^[A-Z]{2}$/.test(country) || !new Intl.DisplayNames(['en'], {type:'region'}).of(country) || new Intl.DisplayNames(['en'], {type:'region'}).of(country) === country) throw invalid('Enter a valid two-letter delivery country code.');
@@ -497,7 +498,7 @@ function commerce(env = process.env) {
         if (post) {
           // No COD or card charge is permitted until courier, stock and payment verification is configured.
           // Existing admin-only test order flow remains isolated from real customer payments.
-          if (!gcc || !configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is pending stock, shipping and payment activation.');
+          if (!stockVerified || !gcc || !configured || !isAdmin || env.SHOP_TEST_CHECKOUT !== 'true') throw invalid('Checkout is pending stock, shipping and payment activation.');
           const id = get('request_id');
           if (!/^[a-f\\d]{8}(-[a-f\\d]{4}){3}-[a-f\\d]{12}$/.test(id)) throw invalid('Invalid checkout request.');
           await query('INSERT INTO shop_orders(id,email,data,status) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING',
@@ -506,21 +507,38 @@ function commerce(env = process.env) {
           cookie(res, 'shop_cart', '', 0);
           redirect(res, '/shop/account');
         } else {
-          const method = gcc ? 'Cash on Delivery (COD)' : 'Secure card payment via Stripe';
-          const countryInput = '<label>Delivery country <select name="country">' +
-            Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('') +
-            '<option value="OTHER"' + (!gcc ? ' selected' : '') + '>Outside GCC — enter ISO country code below</option></select></label>' +
-            '<label>International destination (two-letter code)<input name="international_country" maxlength="2" placeholder="e.g. GB, US, PK" value="' + (gcc ? '' : escape(country)) + '"></label>';
-          // The international field takes priority when supplied. The URL form uses country directly.
-          page(res, 'Checkout', '<section class="cart-shell"><p class="account-eyebrow">SUQAENA · SECURE ORDERING</p><h1>Checkout</h1>' +
-            '<form method="get" action="/shop/checkout"><label>Delivery destination<select name="country">' +
-            Object.keys(markets).map(code => `<option value="${code}"${code === country ? ' selected' : ''}>${countryNames[code]}</option>`).join('') +
-            '<option value="GB"' + (!gcc && country==='GB' ? ' selected' : '') + '>United Kingdom</option><option value="US"' + (!gcc && country==='US' ? ' selected' : '') + '>United States</option><option value="CA"' + (!gcc && country==='CA' ? ' selected' : '') + '>Canada</option><option value="AU"' + (!gcc && country==='AU' ? ' selected' : '') + '>Australia</option><option value="PK"' + (!gcc && country==='PK' ? ' selected' : '') + '>Pakistan</option></select></label><button>Update delivery destination</button></form>' +
-            '<h2>Payment method</h2><p><strong>' + method + '</strong></p>' +
-            (gcc ? '<p>Payment is collected by the courier on delivery, after your order is confirmed.</p>' : '<p>International orders will use Stripe card checkout after shipping is configured and stock is verified.</p>') +
-            (configured ? `<p>Estimated shipping: ${money(market.fee, markets[country])} · ${escape(market.eta)}</p><p>Estimated total: ${money(total, markets[country])}</p>` : '<p>Shipping cost and delivery time are awaiting confirmation for this destination.</p>') +
-            (gcc && configured && isAdmin && env.SHOP_TEST_CHECKOUT === 'true' ? form(path, `<input type="hidden" name="country" value="${country}"><input type="hidden" name="request_id" value="${randomUUID()}">`, 'Create internal COD test order') : '<p><strong>Orders are not being accepted yet.</strong> Stock and shipping arrangements must be verified before checkout is activated.</p>') +
-            '<p><a href="/shop/cart">← Back to shopping bag</a></p></section>');
+          const method = gcc ? 'Cash on Delivery' : 'Credit / Debit Card via Stripe';
+          const subtotal = items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0);
+          const destinations = {...countryNames, GB:'United Kingdom', US:'United States', CA:'Canada', AU:'Australia', PK:'Pakistan', IN:'India', DE:'Germany', FR:'France'};
+          const destinationOptions = Object.entries(destinations).map(([code,name]) =>
+            `<option value="${code}"${country === code ? ' selected' : ''}>${escape(name)}</option>`).join('');
+          const itemCards = items.map(({product,variant,quantity}) => {
+            const imageUrl = product.preview ? '/suqaena-leranath-yellow-suit.png' : (product.images?.[0] || '');
+            return `<div class="checkout-item">${imageUrl ? `<img src="${escape(imageUrl)}" alt="${escape(product.title)}" loading="lazy">` : '<span class="checkout-item-placeholder">SQ</span>'}<div><strong>${escape(product.title)}</strong><small>Size ${escape(variant.size)} · ${escape(variant.color)} · Qty ${quantity}</small></div><b>${money(variant.price * quantity)}</b></div>`;
+          }).join('');
+          const previewNotice = !stockVerified ? 'Supplier stock verification is pending. You can review your delivery details, but orders cannot be submitted yet.' : !configured ? 'Delivery charges and fulfilment must be confirmed before ordering opens.' : 'Checkout will open after final payment and courier verification.';
+          const checkoutHtml = `<section class="checkout-shell">
+            <div class="checkout-heading"><p class="account-eyebrow">SUQAENA · THE SIGNATURE EDIT</p><h1>Secure Checkout</h1><p>Almost yours. Review your delivery details and beautiful selections.</p></div>
+            <div class="checkout-grid">
+              <div class="checkout-panel">
+                <div class="checkout-section-heading"><span>01</span><div><h2>Contact Information</h2><p>We'll use these details for your order updates.</p></div></div>
+                <div class="checkout-fields"><label>First name<input type="text" autocomplete="given-name" placeholder="First name"></label><label>Last name<input type="text" autocomplete="family-name" placeholder="Last name"></label><label class="checkout-wide">Email address<input type="email" autocomplete="email" value="${escape(session.email)}" readonly></label><label class="checkout-wide">Mobile number<input type="tel" autocomplete="tel" placeholder="+971 50 000 0000"></label></div>
+                <div class="checkout-section-heading"><span>02</span><div><h2>Delivery Address</h2><p>Choose your destination to see the available payment method.</p></div></div>
+                <form action="/shop/checkout" method="get" class="checkout-country"><label>Country / Region<select name="country">${destinationOptions}</select></label><button type="submit">Update country</button></form>
+                <div class="checkout-fields"><label class="checkout-wide">Street address<input autocomplete="street-address" placeholder="Building, street and apartment"></label><label>City<input autocomplete="address-level2" placeholder="City"></label><label>State / Emirate<input autocomplete="address-level1" placeholder="State or emirate"></label><label class="checkout-wide">Postal code (if applicable)<input autocomplete="postal-code" placeholder="Postal code"></label><label class="checkout-wide">Delivery notes (optional)<textarea rows="3" placeholder="Landmark or special delivery instructions"></textarea></label></div>
+                <div class="checkout-section-heading"><span>03</span><div><h2>Payment Method</h2><p>Selected automatically from your delivery destination.</p></div></div>
+                <div class="checkout-payment"><span class="checkout-payment-icon">${gcc ? '✦' : '▣'}</span><div><strong>${method}</strong><small>${gcc ? 'Pay your courier when your order arrives.' : 'Secure online card payment will be handled by Stripe.'}</small></div><span class="checkout-selected">Selected</span></div>
+                <p class="checkout-note">Payment collection is not active while supplier stock and delivery arrangements are being verified.</p>
+              </div>
+              <aside class="checkout-summary"><p class="account-eyebrow">YOUR SELECTION</p><h2>Order Summary</h2>${itemCards}
+                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div><span>Shipping</span><strong>${configured ? money(market.fee, markets[country]) : 'To be confirmed'}</strong></div><div class="checkout-grand"><span>Estimated total</span><strong>${configured ? money(total, markets[country]) : money(subtotal) + ' + shipping'}</strong></div></div>
+                <p class="checkout-warning">${escape(previewNotice)}</p>
+                <button type="button" class="checkout-place-order" disabled>Place Order · Coming Soon</button>
+                <p class="checkout-security">♢ Secure shopping · No payment will be taken</p><a class="checkout-back" href="/shop/cart">← Return to Shopping Bag</a>
+              </aside>
+            </div>
+          </section>`;
+          dressPage(res, 'Secure Checkout', checkoutHtml);
         }
       } else if (path === '/shop/admin') {
         if (post) {
