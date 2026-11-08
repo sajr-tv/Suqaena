@@ -15,3 +15,5 @@ button { padding: .6rem 1rem; border: 1px solid var(--gold); border-radius: .2re
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
 article { padding: 1rem; border: 1px solid #e9dbce; margin-block: .5rem; }
 img { width: min(100%, 26rem); max-height: 30rem; object-fit: contain; }
+
+label[hidden] { display: none; }
