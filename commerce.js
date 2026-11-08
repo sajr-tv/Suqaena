@@ -261,8 +261,9 @@ function commerce(env = process.env) {
           const orders = (await query('SELECT id,status,tracking FROM shop_orders WHERE email=$1 ORDER BY created DESC LIMIT 100', [session.email])).rows;
           page(res, 'Your account', `<p>${escape(session.email)}</p>${isAdmin ? '<a href="/shop/admin">Supplier dashboard</a>' : ''}${form(path, '<input type="hidden" name="action" value="logout">', 'Sign out')}<h2>Orders</h2>${orders.map(order => `<p>${order.id} · ${escape(order.status)} ${escape(order.tracking)}</p>`).join('')}`);
         } else {
-          const credentials = input('email', 'Email', 'email') + input('password', 'Password', 'password');
-          page(res, 'Your account', form(path, credentials, 'Sign in') + form(path, credentials + '<input type="hidden" name="action" value="register">', 'Create account'));
+          const credentials = input('email', 'Email', 'email') + input('password', 'Password', 'password') +
+            '<label hidden><input type="checkbox" data-show-password> Show password</label>';
+          page(res, 'Your account', form(path, credentials, 'Sign in') + form(path, credentials + '<input type="hidden" name="action" value="register">', 'Create account') + '<script src="/account.js" defer></script>');
         }
       } else if (path === '/shop/checkout') {
         if (!session) { redirect(res, '/shop/account'); return true; }
