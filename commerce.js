@@ -416,7 +416,7 @@ function commerce(env = process.env) {
       }
       if (path === '/shop/ready-to-wear' && !post) {
         const types = [["Three Piece Shalwar Suits","three-piece"],["Two Piece Shalwar Suits","two-piece"],["Sarees","sarees"],["Lehengas","lehengas"],["Anarkali Suits","anarkali"],["Sharara & Gharara Sets","sharara-gharara"],["Kurtis & Tunics","kurtis"],["Co-ord Sets","coord"],["Maxi & Long Dresses","maxi"],["Palazzo & Trouser Sets","palazzo"]];
-        const buttons = types.map(([name,key])=>`<a class="ready-category-button" href="/shop?category=Ready-to-Wear&type=${encodeURIComponent(key)}"><span>${escape(name)}</span><span aria-hidden="true">→</span></a>`).join('');
+        const buttons = types.map(([name,key])=>key === "three-piece" ? `<a class="ready-image-button" href="/shop?category=Ready-to-Wear&type=three-piece" aria-label="Explore Three Piece Shalwar Suits"><img src="/suqaena-three-piece-shalwar-suits-category.png" alt="Three Piece Shalwar Suits"></a>` : `<a class="ready-category-button" href="/shop?category=Ready-to-Wear&type=${encodeURIComponent(key)}"><span>${escape(name)}</span><span aria-hidden="true">→</span></a>`).join('');
         page(res,'Ready to Wear | Dress Categories',`<style>
           .ready-menu{max-width:1080px;margin:0 auto;padding:28px 22px 85px}
           .ready-menu nav{font-size:13px;color:#8b1739;margin-bottom:26px}
@@ -425,7 +425,7 @@ function commerce(env = process.env) {
           .ready-menu header small{font-size:12px;letter-spacing:.24em;color:#b18b4e;font-weight:700}
           .ready-menu h1{font:normal clamp(38px,5vw,62px)/1.2 Georgia,serif;color:#790d2e;margin:14px 0}
           .ready-menu header p{color:#77656b;margin:0}
-          .ready-category-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+          .ready-category-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;align-items:start}.ready-image-button{display:block;width:min(100%,340px);border-radius:18px;overflow:hidden;transition:transform .2s,box-shadow .2s}.ready-image-button img{display:block;width:100%;height:auto}.ready-image-button:hover,.ready-image-button:focus-visible{transform:translateY(-5px);box-shadow:0 12px 28px #52112b30;outline:2px solid #ba934d}
           .ready-category-button{display:flex;justify-content:space-between;align-items:center;min-height:90px;padding:20px 24px;background:#fff;border:1px solid #d7b878;border-radius:12px;color:#780e30;text-decoration:none;font:normal clamp(18px,2vw,25px)/1.3 Georgia,serif;box-shadow:0 5px 20px #52112b10;transition:background .2s,transform .2s}
           .ready-category-button:hover,.ready-category-button:focus-visible{background:#fff7eb;transform:translateY(-2px);outline:2px solid #ba934d}
           .ready-category-button span:last-child{color:#b18b4e;font:normal 25px Arial,sans-serif}
