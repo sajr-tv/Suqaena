@@ -53,6 +53,9 @@ COPY suqaena-turquoise-blossom-suit-detail.png ./suqaena-turquoise-blossom-suit-
 COPY suqaena-blush-peacock-anarkali-main.png ./suqaena-blush-peacock-anarkali-main.png
 COPY suqaena-blush-peacock-anarkali-side.png ./suqaena-blush-peacock-anarkali-side.png
 COPY suqaena-blush-peacock-anarkali-detail.png ./suqaena-blush-peacock-anarkali-detail.png
+COPY suqaena-ivory-floral-satin-main.png ./suqaena-ivory-floral-satin-main.png
+COPY suqaena-ivory-floral-satin-side.png ./suqaena-ivory-floral-satin-side.png
+COPY suqaena-ivory-floral-satin-detail.png ./suqaena-ivory-floral-satin-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
