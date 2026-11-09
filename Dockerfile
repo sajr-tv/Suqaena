@@ -98,3 +98,5 @@ EXPOSE 3000
 CMD ["node", "server.js"]
 
 COPY suqaena-ready-to-wear-category-hero.png ./suqaena-ready-to-wear-category-hero.png
+
+COPY suqaena-three-piece-shalwar-suits-category.png ./suqaena-three-piece-shalwar-suits-category.png
