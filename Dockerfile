@@ -71,6 +71,9 @@ COPY suqaena-teal-floral-lawn-detail.png ./suqaena-teal-floral-lawn-detail.png
 COPY suqaena-mint-floral-lawn-main.png ./suqaena-mint-floral-lawn-main.png
 COPY suqaena-mint-floral-lawn-side.png ./suqaena-mint-floral-lawn-side.png
 COPY suqaena-mint-floral-lawn-detail.png ./suqaena-mint-floral-lawn-detail.png
+COPY suqaena-ivory-multicolor-lawn-main.png ./suqaena-ivory-multicolor-lawn-main.png
+COPY suqaena-ivory-multicolor-lawn-side.png ./suqaena-ivory-multicolor-lawn-side.png
+COPY suqaena-ivory-multicolor-lawn-detail.png ./suqaena-ivory-multicolor-lawn-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
