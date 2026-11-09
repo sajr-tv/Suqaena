@@ -141,24 +141,24 @@ function commerce(env = process.env) {
     const material = namedFabric || (genericSupplierValue ? '' : recordedMaterial);
     const fabricDescriptions = {
       cotton: 'Cotton — breathable, soft-feel fabric suited to everyday wear',
-      lawn: 'Lawn — lightweight, finely woven fabric commonly used for summer suits; exact fibre blend not verified',
-      crepe: 'Crepe — softly textured fabric with a fluid drape; exact fibre blend not verified',
-      satin: 'Satin — smooth, lustrous weave with an elegant drape; exact fibre blend not verified',
-      chiffon: 'Chiffon — sheer, airy fabric with a light drape; exact fibre blend not verified',
-      silk: 'Silk — smooth, lustrous fabric; fibre composition requires supplier confirmation',
-      linen: 'Linen — crisp, breathable fabric; fibre composition requires supplier confirmation',
-      georgette: 'Georgette — lightweight, softly crinkled fabric; exact fibre blend not verified',
-      velvet: 'Velvet — soft, plush-pile fabric; exact fibre blend not verified',
+      lawn: 'Lawn — lightweight, finely woven fabric commonly used for summer suits',
+      crepe: 'Crepe — softly textured fabric with a fluid drape',
+      satin: 'Satin — smooth, lustrous weave with an elegant drape',
+      chiffon: 'Chiffon — sheer, airy fabric with a light drape',
+      silk: 'Silk — smooth, lustrous fabric',
+      linen: 'Linen — crisp, breathable fabric',
+      georgette: 'Georgette — lightweight, softly crinkled fabric',
+      velvet: 'Velvet — soft, plush-pile fabric',
       rayon: 'Rayon — soft, flowing regenerated-cellulose fabric'
     };
-    const fabricDetail = namedFabric ? fabricDescriptions[namedFabric.toLowerCase()] : (material ? publicLabel(material) : 'Fabric composition available on request');
+    const fabricDetail = namedFabric ? fabricDescriptions[namedFabric.toLowerCase()] : (material ? publicLabel(material) : 'Ask us for fabric details');
     const design = String(specs.printingMethod || '').trim();
     const origin = String(specs.origin || '').trim();
     const reliable = value => value && !/not verified|unverified|to be confirmed|subject to confirmation|unknown|not specified|pending/i.test(value);
     const fields = [
       ['Fabric & Texture', fabricDetail],
       ['Craftsmanship & Design', reliable(design) ? publicLabel(design) : 'See product images for design and detailing'],
-      ['Country of Manufacture', reliable(origin) ? publicLabel(origin) : 'Country of manufacture available on request'],
+      ['Country of Manufacture', reliable(origin) ? publicLabel(origin) : 'Ask us for manufacturing details'],
       ['Collection', 'Women’s Fashion'],
       ['Ordering', 'Order online with secure checkout'],
       ['Delivery', 'GCC delivery options shown at checkout']
