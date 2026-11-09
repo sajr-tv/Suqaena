@@ -59,6 +59,9 @@ COPY suqaena-ivory-floral-satin-detail.png ./suqaena-ivory-floral-satin-detail.p
 COPY suqaena-velora-maroon-elegance-main.png ./suqaena-velora-maroon-elegance-main.png
 COPY suqaena-velora-maroon-elegance-side.png ./suqaena-velora-maroon-elegance-side.png
 COPY suqaena-velora-maroon-elegance-detail.png ./suqaena-velora-maroon-elegance-detail.png
+COPY suqaena-mustard-floral-suit-main.png ./suqaena-mustard-floral-suit-main.png
+COPY suqaena-mustard-floral-suit-side.png ./suqaena-mustard-floral-suit-side.png
+COPY suqaena-mustard-floral-suit-detail.png ./suqaena-mustard-floral-suit-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
