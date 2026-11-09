@@ -65,6 +65,9 @@ COPY suqaena-mustard-floral-suit-detail.png ./suqaena-mustard-floral-suit-detail
 COPY suqaena-ivory-champagne-suit-main.png ./suqaena-ivory-champagne-suit-main.png
 COPY suqaena-ivory-champagne-suit-side.png ./suqaena-ivory-champagne-suit-side.png
 COPY suqaena-ivory-champagne-suit-detail.png ./suqaena-ivory-champagne-suit-detail.png
+COPY suqaena-teal-floral-lawn-main.png ./suqaena-teal-floral-lawn-main.png
+COPY suqaena-teal-floral-lawn-side.png ./suqaena-teal-floral-lawn-side.png
+COPY suqaena-teal-floral-lawn-detail.png ./suqaena-teal-floral-lawn-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
