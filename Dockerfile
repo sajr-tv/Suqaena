@@ -90,6 +90,9 @@ COPY suqaena-blush-pink-crepe-detail.png ./suqaena-blush-pink-crepe-detail.png
 COPY suqaena-ivory-floral-embroidered-main.png ./suqaena-ivory-floral-embroidered-main.png
 COPY suqaena-ivory-floral-embroidered-side.png ./suqaena-ivory-floral-embroidered-side.png
 COPY suqaena-ivory-floral-embroidered-detail.png ./suqaena-ivory-floral-embroidered-detail.png
+COPY suqaena-champagne-beige-embroidered-main.png ./suqaena-champagne-beige-embroidered-main.png
+COPY suqaena-champagne-beige-embroidered-side.png ./suqaena-champagne-beige-embroidered-side.png
+COPY suqaena-champagne-beige-embroidered-detail.png ./suqaena-champagne-beige-embroidered-detail.png
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
