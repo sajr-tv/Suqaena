@@ -136,15 +136,27 @@ function commerce(env = process.env) {
     if (!body.includes('class="dress-detail"')) return page(res, title, body, 200, true);
     // Shared specification panel for every dress: product-specific facts only.
     const recordedMaterial = String(specs.material || '').trim();
-    // A copied supplier-listing placeholder is not evidence of fabric composition.
-    // Prefer explicit product-specific material in the dress title where available.
-    const namedFabric = (String(title).match(/\\b(cotton|lawn|crepe|satin|chiffon|silk|linen|georgette|velvet|rayon)\\b/i) || [])[1];
-    const material = namedFabric || (/supplier listing/i.test(recordedMaterial) ? '' : recordedMaterial);
+    const namedFabric = (String(title).match(/\b(cotton|lawn|crepe|satin|chiffon|silk|linen|georgette|velvet|rayon)\b/i) || [])[1];
+    const genericSupplierValue = /supplier listing/i.test(recordedMaterial);
+    const material = namedFabric || (genericSupplierValue ? '' : recordedMaterial);
+    const fabricDescriptions = {
+      cotton: 'Cotton — breathable, soft-feel fabric suited to everyday wear',
+      lawn: 'Lawn — lightweight, finely woven fabric commonly used for summer suits; exact fibre blend not verified',
+      crepe: 'Crepe — softly textured fabric with a fluid drape; exact fibre blend not verified',
+      satin: 'Satin — smooth, lustrous weave with an elegant drape; exact fibre blend not verified',
+      chiffon: 'Chiffon — sheer, airy fabric with a light drape; exact fibre blend not verified',
+      silk: 'Silk — smooth, lustrous fabric; fibre composition requires supplier confirmation',
+      linen: 'Linen — crisp, breathable fabric; fibre composition requires supplier confirmation',
+      georgette: 'Georgette — lightweight, softly crinkled fabric; exact fibre blend not verified',
+      velvet: 'Velvet — soft, plush-pile fabric; exact fibre blend not verified',
+      rayon: 'Rayon — soft, flowing regenerated-cellulose fabric'
+    };
+    const fabricDetail = namedFabric ? fabricDescriptions[namedFabric.toLowerCase()] : (material ? publicLabel(material) : 'Fabric composition available on request');
     const design = String(specs.printingMethod || '').trim();
     const origin = String(specs.origin || '').trim();
     const reliable = value => value && !/not verified|unverified|to be confirmed|subject to confirmation|unknown|not specified|pending/i.test(value);
     const fields = [
-      ['Fabric', reliable(material) ? publicLabel(material) : 'Fabric details available on request'],
+      ['Fabric & Texture', fabricDetail],
       ['Craftsmanship & Design', reliable(design) ? publicLabel(design) : 'See product images for design and detailing'],
       ['Country of Manufacture', reliable(origin) ? publicLabel(origin) : 'Country of manufacture available on request'],
       ['Collection', 'Women’s Fashion'],
