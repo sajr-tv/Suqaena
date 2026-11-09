@@ -134,9 +134,20 @@ function commerce(env = process.env) {
   }
   function dressPage(res, title, body, specs = {}) {
     if (!body.includes('class="dress-detail"')) return page(res, title, body, 200, true);
-    const fields = [['Design Detail','printingMethod'],['Material','material'],['Age Group','ageGroup'],['Gender','gender']];
-    const visibleFields = fields.filter(([,key]) => specs[key] && !/not verified|unverified|to be confirmed|subject to confirmation/i.test(String(specs[key])));
-    const panel = `<section class="dress-specifications" aria-label="Product specifications"><h2>Product Specifications</h2><div class="dress-spec-grid">${visibleFields.map(([label,key])=>`<div class="dress-spec-item"><span>${label}</span><strong>${escape(publicLabel(specs[key]))}</strong></div>`).join('')}<div class="dress-spec-item"><span>Availability</span><strong>Available to order</strong></div><div class="dress-spec-item"><span>Delivery</span><strong>Free delivery across GCC</strong></div></div></section>`;
+    // Shared specification panel for every dress: product-specific facts only.
+    const material = String(specs.material || '').trim();
+    const design = String(specs.printingMethod || '').trim();
+    const origin = String(specs.origin || '').trim();
+    const reliable = value => value && !/not verified|unverified|to be confirmed|subject to confirmation|unknown|not specified|pending/i.test(value);
+    const fields = [
+      ['Fabric', reliable(material) ? publicLabel(material) : 'Fabric details available on request'],
+      ['Craftsmanship & Design', reliable(design) ? publicLabel(design) : 'See product images for design and detailing'],
+      ['Country of Manufacture', reliable(origin) ? publicLabel(origin) : 'Country of manufacture available on request'],
+      ['Collection', 'Women’s Fashion'],
+      ['Ordering', 'Order online with secure checkout'],
+      ['Delivery', 'GCC delivery options shown at checkout']
+    ];
+    const panel = `<section class="dress-specifications" aria-label="Product specifications"><h2>Product Specifications</h2><div class="dress-spec-grid">${fields.map(([label,value])=>`<div class="dress-spec-item"><span>${escape(label)}</span><strong>${escape(value)}</strong></div>`).join('')}</div></section>`;
     const giftOffer = '<aside class="dress-gift-offer" aria-label="Jewellery launch gift"><span class="dress-gift-icon" aria-hidden="true">✦</span><div><strong>Complimentary Matching Jewellery with This Dress</strong><p>A beautiful jewellery gift selected to complement your outfit — included at no extra charge.</p></div></aside>';
     // All dress pages share this renderer; keep the existing gift panel where present.
     let detail = body;
