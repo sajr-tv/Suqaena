@@ -96,3 +96,5 @@ COPY suqaena-champagne-beige-embroidered-detail.png ./suqaena-champagne-beige-em
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
+
+COPY suqaena-ready-to-wear-category-hero.png ./suqaena-ready-to-wear-category-hero.png
