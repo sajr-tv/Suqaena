@@ -421,7 +421,7 @@ function commerce(env = process.env) {
           .ready-menu{max-width:1080px;margin:0 auto;padding:28px 22px 85px}
           .ready-menu nav{font-size:13px;color:#8b1739;margin-bottom:26px}
           .ready-menu nav a{color:inherit}
-          .ready-menu header{text-align:center;padding:38px 16px 36px}
+          .ready-menu header{text-align:center;padding:0;margin:0 0 30px}.ready-category-hero img{display:block;width:100%;height:auto;border-radius:12px}
           .ready-menu header small{font-size:12px;letter-spacing:.24em;color:#b18b4e;font-weight:700}
           .ready-menu h1{font:normal clamp(38px,5vw,62px)/1.2 Georgia,serif;color:#790d2e;margin:14px 0}
           .ready-menu header p{color:#77656b;margin:0}
@@ -430,7 +430,7 @@ function commerce(env = process.env) {
           .ready-category-button:hover,.ready-category-button:focus-visible{background:#fff7eb;transform:translateY(-2px);outline:2px solid #ba934d}
           .ready-category-button span:last-child{color:#b18b4e;font:normal 25px Arial,sans-serif}
           @media(max-width:650px){.ready-category-buttons{grid-template-columns:1fr;gap:12px}.ready-category-button{min-height:70px;padding:17px 19px}.ready-menu{padding:14px 16px 60px}}
-        </style><main class="ready-menu"><nav><a href="/">Home</a> / Ready to Wear</nav><header><small>SUQAENA · SHOP BY STYLE</small><h1>Ready to Wear</h1><p>Select a dress category to explore</p></header><section class="ready-category-buttons" aria-label="Ready to wear dress categories">${buttons}</section></main>`,200,true);
+        </style><main class="ready-menu"><nav><a href="/">Home</a> / Ready to Wear</nav><header class="ready-category-hero"><img src="/suqaena-ready-to-wear-category-hero.png" alt="SUQAENA Ready to Wear — Premium Pakistani and Indian Fashion"></header><section class="ready-category-buttons" aria-label="Ready to wear dress categories">${buttons}</section></main>`,200,true);
         return true;
       }
       if (path === '/shop' && !post) {
