@@ -102,3 +102,5 @@ COPY suqaena-ready-to-wear-category-hero.png ./suqaena-ready-to-wear-category-he
 COPY suqaena-three-piece-shalwar-suits-category.png ./suqaena-three-piece-shalwar-suits-category.png
 
 COPY suqaena-two-piece-stitched-suits-category.png ./suqaena-two-piece-stitched-suits-category.png
+
+COPY suqaena-sarees-category.png ./suqaena-sarees-category.png
