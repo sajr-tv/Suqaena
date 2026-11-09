@@ -135,7 +135,11 @@ function commerce(env = process.env) {
   function dressPage(res, title, body, specs = {}) {
     if (!body.includes('class="dress-detail"')) return page(res, title, body, 200, true);
     // Shared specification panel for every dress: product-specific facts only.
-    const material = String(specs.material || '').trim();
+    const recordedMaterial = String(specs.material || '').trim();
+    // A copied supplier-listing placeholder is not evidence of fabric composition.
+    // Prefer explicit product-specific material in the dress title where available.
+    const namedFabric = (String(title).match(/\\b(cotton|lawn|crepe|satin|chiffon|silk|linen|georgette|velvet|rayon)\\b/i) || [])[1];
+    const material = namedFabric || (/supplier listing/i.test(recordedMaterial) ? '' : recordedMaterial);
     const design = String(specs.printingMethod || '').trim();
     const origin = String(specs.origin || '').trim();
     const reliable = value => value && !/not verified|unverified|to be confirmed|subject to confirmation|unknown|not specified|pending/i.test(value);
