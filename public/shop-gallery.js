@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(!form)return;
   form.addEventListener('submit',event=>{
     const selected=document.querySelector('input[name="size"][form="dress-preview-form"]:checked');
-    if(!selected){event.preventDefault();window.alert('Please choose your size first.');return;}
+    if(form.querySelector('input[name="size"][form="dress-preview-form"]') && !selected){event.preventDefault();window.alert('Please choose your size first.');return;}
     const qtyInput=document.getElementById('dress-cart-quantity');
     if(qtyInput)qtyInput.value=document.getElementById('dress-quantity')?.textContent||'1';
   });
