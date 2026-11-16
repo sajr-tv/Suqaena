@@ -3,7 +3,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
-COPY server.js commerce.js supplier-memo.js stripe-checkout.js ./
+COPY server.js analytics.js commerce.js supplier-memo.js stripe-checkout.js ./
 COPY public ./public
 COPY ["Suqaena-Champagne-Peach-Gold-Embroidered-Suit-Fron.png", "Suqaena-Champagne-Peach-Gold-Embroidered-Suit-Side.png", "Suqaena-Champagne-Peach-Gold-Embroidered-Suit-Closeup.png", "./"]
 COPY ["Suqaena-Royal-Teal-Gold-Embroidered-Suit-Front.png", "Suqaena-Royal-Teal-Gold-Embroidered-Suit-Side.png", "Suqaena-Royal-Teal-Gold-Embroidered-Suit-Closeup.png", "./"]
