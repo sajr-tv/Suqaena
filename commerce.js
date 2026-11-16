@@ -415,7 +415,13 @@ function commerce(env = process.env) {
         return true;
       }
       if ((path === '/shop/unstitched' || path === '/unstitched') && !post) {
-        page(res,'Unstitched Collection',`<main class="ready-menu"><nav><a href="/">Home</a> / Unstitched Collection</nav><header class="ready-category-hero"><img src="/assets/suqaena-unstitched-hero.png" alt="SUQAENA Unstitched Collection — premium fabrics and designs" style="display:block;width:100%;height:auto"></header><section style="padding:24px 0"><h2>Explore Unstitched Fabrics</h2><p>Discover fabrics and unstitched outfits for your personal style.</p><a class="ready-category-button" href="/shop?category=Unstitched%202-Piece%20and%203-Piece%20Suits">Shop Unstitched Suits →</a></section></main>`,200,true);
+        const unstitched = (await query(`SELECT id,data FROM shop_products WHERE published AND data->>'category'='Unstitched 2-Piece and 3-Piece Suits' ORDER BY id DESC LIMIT 100`)).rows;
+        const cards = unstitched.map(({id,data}) => {
+          const prices = (Array.isArray(data.variants) ? data.variants : []).map(v=>Number(v.price)).filter(v=>Number.isFinite(v) && v>0);
+          const price = prices.length ? `<p class="fashion-price">${money(Math.min(...prices))}</p>` : '';
+          return `<article class="fashion-card"><a class="fashion-image" href="/shop/product/${id}">${image(data) || '<div class="fashion-placeholder">Image coming soon</div>'}</a><div class="fashion-details"><h2><a href="/shop/product/${id}">${escape(publicLabel(data.title))}</a></h2>${price}<a class="fashion-cta" href="/shop/product/${id}">View Dress</a></div></article>`;
+        }).join('');
+        page(res,'Unstitched Collection',`<main class="ready-menu"><nav><a href="/">Home</a> / Unstitched Collection</nav><header class="ready-category-hero"><img src="/assets/suqaena-unstitched-hero.png" alt="SUQAENA Unstitched Collection" style="display:block;width:100%;height:auto"></header><section style="padding:24px 0"><h1>Unstitched Collection</h1><p>Discover fabrics and unstitched outfits for your personal style.</p><div class="fashion-grid">${cards || '<p>Our unstitched collection is coming soon.</p>'}</div></section></main>`,200,true);
         return true;
       }
       if (path === '/shop/ready-to-wear' && !post) {
