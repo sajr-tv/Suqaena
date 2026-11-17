@@ -5,6 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY server.js analytics.js commerce.js supplier-memo.js stripe-checkout.js ./
 COPY public ./public
+COPY ["Suqaena-Royal-Plum-Magenta-Gold-Suit-Front.png", "Suqaena-Royal-Plum-Magenta-Gold-Suit-Side.png", "Suqaena-Royal-Plum-Magenta-Gold-Suit-Closeup.png", "./public/"]
 COPY ["Suqaena-Royal-Ivory-Floral-Lace-Suit-Front.png", "Suqaena-Royal-Ivory-Floral-Lace-Suit-Side.png", "Suqaena-Royal-Ivory-Floral-Lace-Suit-Closeup.png", "./public/"]
 COPY ["Suqaena-Royal-Midnight-Black-Floral-Suit-Front.png", "Suqaena-Royal-Midnight-Black-Floral-Suit-Side.png", "Suqaena-Royal-Midnight-Black-Floral-Suit-Closeup.png", "./public/"]
 COPY ["Suqaena-Royal-Fuchsia-Magenta-Suit-Front.png", "Suqaena-Royal-Fuchsia-Magenta-Suit-Side.png", "Suqaena-Royal-Fuchsia-Magenta-Suit-Closeup.png", "./public/"]
