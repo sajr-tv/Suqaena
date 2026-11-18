@@ -164,3 +164,5 @@ COPY Suqaena-Royal-Powder-Blue-Champagne-Gold-Suit-*.png ./
 COPY Suqaena-Royal-Lavender-Pink-Crystal-Suit-*.png ./
 
 COPY Suqaena-Royal-Ivory-Blue-Floral-Suit-*.png ./
+
+COPY Suqaena-Royal-Ivory-Turquoise-Floral-Suit-*.png ./
