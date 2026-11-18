@@ -150,3 +150,5 @@ COPY suqaena-three-piece-shalwar-suits-category.png ./suqaena-three-piece-shalwa
 COPY suqaena-two-piece-stitched-suits-category.png ./suqaena-two-piece-stitched-suits-category.png
 
 COPY suqaena-sarees-category.png ./suqaena-sarees-category.png
+
+COPY Suqaena-Royal-Mint-Green-Silver-Embroidered-Suit-*.png ./
