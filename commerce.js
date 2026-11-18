@@ -132,6 +132,30 @@ function commerce(env = process.env) {
       .replace(/\b(?:Alibaba|Leranath(?:\s+Fashion)?|RIYOMI(?:\s+RETAIL)?|Twinfeet)\b/gi, '')
       .replace(/\s{2,}/g, ' ').trim();
   }
+  // Stable, unique public stock reference based on each product's canonical route.
+  // This is an identifier, not an inventory quantity or availability claim.
+  function stockNumber(route, unstitched) {
+    const normalized = String(route || '').split('?')[0].replace(/\/$/, '').toLowerCase();
+    let h1 = 2166136261, h2 = 2246822519;
+    for (let i = 0; i < normalized.length; i++) {
+      const n = normalized.charCodeAt(i);
+      h1 = Math.imul(h1 ^ n, 16777619) >>> 0;
+      h2 = Math.imul(h2 ^ n, 3266489917) >>> 0;
+    }
+    return 'SQ-' + (unstitched ? 'U' : 'S') + '-' + h1.toString(16).padStart(8, '0').toUpperCase() + h2.toString(16).padStart(8, '0').toUpperCase();
+  }
+  function stockLabel(route, unstitched) {
+    return '<p class="suqaena-stock-number">Stock No: <strong>' + stockNumber(route, unstitched) + '</strong></p>';
+  }
+  function addStockNumbersToCards(body, collectionTitle) {
+    const unstitched = /unstitched/i.test(collectionTitle);
+    return body.replace(/<article class="fashion-card(?:\s+[^"]*)?">[\s\S]*?<\/article>/g, card => {
+      if (card.includes('suqaena-stock-number')) return card;
+      const link = card.match(/<a class="fashion-image" href="([^"]+)"/);
+      if (!link || !/^\/shop\/(?:dress|product)\//.test(link[1])) return card;
+      return card.replace(/(<div class="fashion-details">[\s\S]*?<\/h2>)/, '$1' + stockLabel(link[1], unstitched || /unstitched/i.test(card)));
+    });
+  }
   function dressPage(res, title, body, specs = {}) {
     if (!body.includes('class="dress-detail"')) return page(res, title, body, 200, true);
     // Shared specification panel for every dress: product-specific facts only.
@@ -171,6 +195,11 @@ function commerce(env = process.env) {
       const sizesIndex = detail.indexOf('<fieldset class="dress-sizes">');
       if (sizesIndex !== -1) detail = detail.slice(0, sizesIndex) + giftOffer + detail.slice(sizesIndex);
     }
+    const productRoute = (res.req && res.req.url || '').split('?')[0];
+    if (/^\/shop\/(?:dress|product)\//.test(productRoute) && !detail.includes('suqaena-stock-number')) {
+      const unstitched = /unstitched/i.test(productRoute + ' ' + detail);
+      detail = detail.replace(/(<h1[^>]*>[\s\S]*?<\/h1>)/, '$1' + stockLabel(productRoute, unstitched));
+    }
     page(res, publicLabel(title), detail.replace('</section>', '</section>' + panel), 200, true);
   }
   function page(res, title, body, status = 200, dressLayout = false) {
@@ -179,7 +208,7 @@ function commerce(env = process.env) {
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'same-origin',
       'Content-Security-Policy': `default-src 'self'; img-src 'self' https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`
     });
-    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(publicLabel(title))} | SUQAENA</title><link rel="stylesheet" href="/shop.css"><link rel="stylesheet" href="/whatsapp.css">${dressLayout ? dressHeader.replace('class="dress-header-actions"', 'class="dress-header-actions"').replace('♡ <small>Account</small>', res.shopInitial ? `<span class="shop-initial">${escape(res.shopInitial)}</span><small>${escape(res.shopFirstName || 'Account')}</small>` : '♡ <small>Account</small>') : `<header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header>`}<main class="${dressLayout ? 'dress-main' : ''}">${dressLayout ? '' : `<h1>${escape(title)}</h1>`}${body}</main><a class="suqaena-whatsapp" href="https://wa.me/971545540621?text=Hello%20SUQAENA%2C%20I%20would%20like%20to%20ask%20about%20a%20dress%20or%20place%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Contact or order on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.5 0 .2 5.3.2 11.9c0 2.1.6 4.1 1.7 5.9L0 24l6.4-1.7a12 12 0 0 0 5.7 1.5h.1c6.5 0 11.8-5.3 11.8-11.9 0-3.2-1.2-6.2-3.5-8.4ZM12.1 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.3-.4a9.8 9.8 0 0 1-1.5-5.2c0-5.5 4.5-10 10-10a10 10 0 0 1 10 10c0 5.5-4.5 9.9-10 9.9Zm5.5-7.4c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.4-.2-1.5-.6-2.8-1.7-1-1-1.7-2.1-1.9-2.4-.2-.3 0-.5.2-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6L8.4 6c-.2-.5-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.8s1.2 3.1 1.4 3.3c.2.2 2.3 3.5 5.6 4.9.8.3 1.4.5 1.9.6.8.3 1.6.2 2.2.1.7-.1 1.8-.8 2.1-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.8-.4Z"/></svg><span>WhatsApp Order / Help</span></a></html>`);
+    res.end(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(publicLabel(title))} | SUQAENA</title><link rel="stylesheet" href="/shop.css"><link rel="stylesheet" href="/whatsapp.css">${dressLayout ? dressHeader.replace('class="dress-header-actions"', 'class="dress-header-actions"').replace('♡ <small>Account</small>', res.shopInitial ? `<span class="shop-initial">${escape(res.shopInitial)}</span><small>${escape(res.shopFirstName || 'Account')}</small>` : '♡ <small>Account</small>') : `<header><a href="/">SUQAENA</a><nav><a href="/shop">Shop</a><a href="/shop/cart">Cart</a><a href="/shop/account">Account</a></nav></header>`}<main class="${dressLayout ? 'dress-main' : ''}">${dressLayout ? '' : `<h1>${escape(title)}</h1>`}${addStockNumbersToCards(body, title)}</main><a class="suqaena-whatsapp" href="https://wa.me/971545540621?text=Hello%20SUQAENA%2C%20I%20would%20like%20to%20ask%20about%20a%20dress%20or%20place%20an%20order." target="_blank" rel="noopener noreferrer" aria-label="Contact or order on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.5 0 .2 5.3.2 11.9c0 2.1.6 4.1 1.7 5.9L0 24l6.4-1.7a12 12 0 0 0 5.7 1.5h.1c6.5 0 11.8-5.3 11.8-11.9 0-3.2-1.2-6.2-3.5-8.4ZM12.1 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.8 1 1-3.7-.3-.4a9.8 9.8 0 0 1-1.5-5.2c0-5.5 4.5-10 10-10a10 10 0 0 1 10 10c0 5.5-4.5 9.9-10 9.9Zm5.5-7.4c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.4-.2-1.5-.6-2.8-1.7-1-1-1.7-2.1-1.9-2.4-.2-.3 0-.5.2-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6L8.4 6c-.2-.5-.4-.4-.7-.4h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.8s1.2 3.1 1.4 3.3c.2.2 2.3 3.5 5.6 4.9.8.3 1.4.5 1.9.6.8.3 1.6.2 2.2.1.7-.1 1.8-.8 2.1-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.8-.4Z"/></svg><span>WhatsApp Order / Help</span></a></html>`);
   }
   const redirect = (res, location) => res.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }).end();
   const form = (path, body, label) => `<form method="post" action="${path}">${body}<button>${label}</button></form>`;
