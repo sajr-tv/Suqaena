@@ -184,3 +184,5 @@ COPY Suqaena-Royal-Emerald-Antique-Gold-261118-*.png ./
 COPY Suqaena-Royal-Blush-Rose-Gold-261118-*.png ./
 
 COPY Suqaena-Royal-Champagne-Peach-Rose-Gold-261118-*.png ./
+
+COPY Suqaena-Royal-Turquoise-Blush-Gold-261118-*.png ./
