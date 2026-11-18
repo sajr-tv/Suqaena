@@ -178,3 +178,5 @@ COPY Suqaena-Royal-Ivory-Polka-Floral-Black-Lace-261118-*.png ./
 COPY Suqaena-Royal-Midnight-Navy-Teal-261118-*.png ./
 
 COPY Suqaena-Royal-Ivory-Pearl-261118-*.png ./
+
+COPY Suqaena-Royal-Emerald-Antique-Gold-261118-*.png ./
