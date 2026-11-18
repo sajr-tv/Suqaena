@@ -6,3 +6,14 @@ body>.top,body>header{display:none}.nav-home{left:30.6%;top:5.5%;width:6%;height
 
 /* Clean artwork has no baked-in header controls or CTA. Match category tiles to new image proportions. */
 .approved-design .shop-now,.approved-design .collection-link{display:none!important}.approved-design .cat1,.approved-design .cat2,.approved-design .cat3,.approved-design .cat4,.approved-design .cat5,.approved-design .cat6{top:50.7%;height:17.8%;width:15.1%}.approved-design .cat1{left:2.1%}.approved-design .cat2{left:18.3%}.approved-design .cat3{left:34.4%}.approved-design .cat4{left:50.6%}.approved-design .cat5{left:66.8%}.approved-design .cat6{left:82.9%}
+
+/* Mobile homepage image resilience: avoid large empty broken-image panels. */
+.discover-suqaena .discover-fallback{display:none}
+.discover-suqaena.asset-fallback{min-height:0!important;aspect-ratio:auto!important;padding:32px 20px;background:linear-gradient(135deg,#fff9f2,#f9ecdf);text-align:center;line-height:1.5}
+.discover-suqaena.asset-fallback .discover-fallback{display:block}
+.discover-fallback h2{font:700 clamp(28px,7vw,46px)/1.15 Georgia,serif;color:#850d20;margin:0 0 12px}
+.discover-fallback p{font:16px/1.6 Arial,sans-serif;color:#65424a;margin:0 0 22px}
+.discover-fallback a{display:inline-block;background:#850d20;color:white;padding:13px 23px;border-radius:8px;font:700 14px Arial,sans-serif}
+.luxury-category-card.asset-fallback{background:linear-gradient(150deg,#8c1028,#430717);border:2px solid #d9a74e;display:flex;align-items:center;justify-content:center;text-align:center}
+.luxury-category-card.asset-fallback::after{content:attr(data-fallback-title);color:#f7d991;font:700 clamp(14px,3.4vw,25px)/1.25 Georgia,serif;padding:12px}
+@media(max-width:650px){.discover-suqaena{width:100%;max-width:100%;overflow:hidden}.discover-suqaena>img{max-width:100%;height:auto!important}.discover-suqaena.asset-fallback{padding:36px 18px}.luxury-category-card.asset-fallback::after{font-size:clamp(13px,3.6vw,18px)}}
