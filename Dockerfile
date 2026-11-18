@@ -188,3 +188,5 @@ COPY Suqaena-Royal-Champagne-Peach-Rose-Gold-261118-*.png ./
 COPY Suqaena-Royal-Turquoise-Blush-Gold-261118-*.png ./
 
 COPY Suqaena-Royal-Ivory-White-Chikankari-261118-*.png ./
+
+COPY Suqaena-Royal-Dusty-Teal-Mauve-Gold-261118-*.png ./
