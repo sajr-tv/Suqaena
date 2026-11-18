@@ -407,7 +407,7 @@ function commerce(env = process.env) {
               'preview-plumchiffon-ONE': {title:'Plum Chiffon Dress With Chiffon Dupatta – Sequence Threads',image:'/assets/suqaena-plum-chiffon-sequence-main.png',color:'Plum',price:150},
               'preview-tealzari-ONE': {title:'Teal Chiffon Heavy Zari & Sequence Embroidered Suit',image:'/assets/suqaena-teal-zari-sequence-main.png',color:'Teal',price:160},
               'preview-royalivoryblushpinkfloral-ONE': {title:'Royal Ivory Blush Pink Floral Embroidered 3-Piece Unstitched Suit',image:'/Suqaena-Royal-Ivory-Blush-Pink-Floral-Suit-Front.png',color:'Ivory Blush Pink',price:130},
-              'preview-royalmidnighttealfloral-ONE': {title:'Royal Midnight Teal Floral Embroidered 3-Piece Suit',image:'/Suqaena-Royal-Midnight-Teal-Floral-Suit-Front.png',color:'Midnight Teal',price:110},,
+              'preview-royalmidnighttealfloral-ONE': {title:'Royal Midnight Teal Floral Embroidered 3-Piece Suit',image:'/Suqaena-Royal-Midnight-Teal-Floral-Suit-Front.png',color:'Midnight Teal',price:110},
               'preview-royallavenderpearl-ONE': {title:'Royal Lavender Pearl Embroidered 3-Piece Suit',image:'/Suqaena-Royal-Lavender-Pearl-Suit-Front.png',color:'Lavender',price:110},
               'preview-royalivorybluegoldfloral-ONE': {title:'Royal Ivory Blue & Gold Floral Embroidered 3-Piece Suit',image:'/Suqaena-Royal-Ivory-Blue-Gold-Floral-Suit-Front.png',color:'Ivory Blue Gold',price:210},
               'preview-royaldustyrosepinkgoldfloral-ONE': {title:'Royal Dusty Rose Pink and Gold Floral Embroidered 3-Piece Unstitched Suit',image:'/Suqaena-Royal-Dusty-Rose-Pink-Gold-Floral-Suit-Front.png',color:'Dusty Rose Pink Gold',price:150},
