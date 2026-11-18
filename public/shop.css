@@ -342,3 +342,9 @@ body:has(.fashion-hero) .fashion-hero>*{position:absolute;clip-path:inset(50%);w
 .fashion-grid .fashion-details .fashion-price{margin-top:auto}
 .fashion-grid .fashion-details .fashion-note{min-height:2.8em}
 .fashion-grid .fashion-details .fashion-cta{box-sizing:border-box;width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;margin:0;padding:12px 10px;flex:none}
+
+/* Keep all collection action buttons aligned despite varying title lengths. */
+.fashion-grid .fashion-card{display:flex;flex-direction:column}
+.fashion-grid .fashion-details{display:flex;flex-direction:column;flex:1;min-width:0}
+.fashion-grid .fashion-details .fashion-cta{margin-top:auto}
+.fashion-grid .fashion-details .fashion-note:last-child,.fashion-grid .fashion-details .fashion-pending:last-child{min-height:36px}
