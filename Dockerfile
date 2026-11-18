@@ -190,3 +190,5 @@ COPY Suqaena-Royal-Turquoise-Blush-Gold-261118-*.png ./
 COPY Suqaena-Royal-Ivory-White-Chikankari-261118-*.png ./
 
 COPY Suqaena-Royal-Dusty-Teal-Mauve-Gold-261118-*.png ./
+
+COPY Suqaena-Royal-Aqua-Blue-Chikankari-261118-*.png ./
