@@ -170,3 +170,5 @@ COPY Suqaena-Royal-Ivory-Turquoise-Floral-Suit-*.png ./
 COPY Suqaena-Royal-Ivory-Blue-Gold-Floral-Suit*.png ./
 
 COPY Suqaena-SQ261118-New-Ivory-Floral-*.png ./
+
+COPY Suqaena-Royal-Mint-Champagne-Gold-261118-*.png ./
