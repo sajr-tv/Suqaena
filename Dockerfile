@@ -156,3 +156,5 @@ COPY Suqaena-Royal-Mint-Green-Silver-Embroidered-Suit-*.png ./
 COPY Suqaena-Royal-Wine-Maroon-Multicolor-Dupatta-*.png ./
 
 COPY Suqaena-Royal-Olive-Gold-Sequin-Suit-*.png ./
+
+COPY Suqaena-Royal-Crimson-Champagne-Floral-Suit-*.png ./
