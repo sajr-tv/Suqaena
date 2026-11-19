@@ -146,6 +146,7 @@ COPY ["suqaena-deep-teal-lawn-main.png", "suqaena-deep-teal-lawn-side.png", "suq
 COPY ["suqaena-ivory-lavender-lawn-main.png", "suqaena-ivory-lavender-lawn-side.png", "suqaena-ivory-lavender-lawn-closeup.png", "./public/"]
 COPY ["suqaena-pastel-lime-lavender-lawn-main.png", "suqaena-pastel-lime-lavender-lawn-side.png", "suqaena-pastel-lime-lavender-lawn-closeup.png", "./public/"]
 COPY ["suqaena-ivory-blue-floral-lawn-main.png", "suqaena-ivory-blue-floral-lawn-side.png", "suqaena-ivory-blue-floral-lawn-closeup.png", "./public/"]
+COPY ["suqaena-ivory-turquoise-floral-lawn-main.png", "suqaena-ivory-turquoise-floral-lawn-side.png", "suqaena-ivory-turquoise-floral-lawn-closeup.png", "./public/"]
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
