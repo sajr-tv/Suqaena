@@ -2321,7 +2321,15 @@ function commerce(env = process.env) {
               if (address[field].length < 2 || address[field].length > 150) throw invalid('Please enter your '+label+' (2–150 characters) before continuing to payment.');
             }
             const orderId = randomUUID();
-            const lineItems = items.map(({product,variant,quantity}) => ({name:product.title+' · '+variant.size+' · '+variant.color,quantity,unitMinor:Math.round(variant.price*100)}));
+            const lineItems = items.map(({product,variant,quantity}) => {
+              const firstImage = product.images?.[0];
+              let imageUrl;
+              if (typeof firstImage === 'string' && firstImage.startsWith('/') && !firstImage.startsWith('//')) {
+                const resolved = new URL(firstImage,site);
+                if (resolved.protocol === 'https:') imageUrl = resolved.href;
+              }
+              return {name:product.title+' · '+variant.size+' · '+variant.color,quantity,unitMinor:Math.round(variant.price*100),imageUrl};
+            });
             const totalMinor = lineItems.reduce((n,x)=>n+x.quantity*x.unitMinor,0)+shippingAED*100;
             const orderData = {country,paymentMethod:'stripe',currency:'aed',totalMinor,address,items:items.map(({product,variant,quantity})=>({title:product.title,sku:variant.sku,size:variant.size,quantity,unitAED:variant.price}))};
             await query('INSERT INTO shop_orders(id,email,data,status) VALUES($1,$2,$3,$4)',[orderId,session.email,JSON.stringify(orderData),'initiating_card']);
