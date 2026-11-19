@@ -551,7 +551,7 @@ function commerce(env = process.env) {
         const rows = (await query(`SELECT id,data FROM shop_products WHERE published
           AND ($1='' OR data->>'category'=$1)
           AND ($2='' OR strpos(lower(concat_ws(' ',data->>'title',data->>'fabric',data->>'description')),lower($2))>0)
-          ORDER BY id DESC LIMIT 100`, [category, search])).rows;
+          ORDER BY id DESC LIMIT 500`, [category, search])).rows;
         const collection = category === 'Ready-to-Wear';
         const dressType = (url.searchParams.get('type') || 'three-piece').slice(0,40);
         const dressTypes = {"three-piece":"3-Piece Shalwar Suits","two-piece":"2-Piece Shalwar Suits","sarees":"Sarees","lehengas":"Lehengas","anarkali":"Anarkali Suits","sharara-gharara":"Sharara & Gharara Sets","kurtis":"Kurtis & Tunics","coord":"Co-ord Sets","maxi":"Maxi & Long Dresses","palazzo":"Palazzo & Trouser Sets"};
