@@ -1694,7 +1694,7 @@ function commerce(env = process.env) {
           <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><input type="hidden" name="return_to" value="/shop/dress/royal-black-antique-gold-unstitched"><input type="hidden" name="product" value="royalblackgold"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
           <p class="dress-status">Minimum order: 1 suit. Supplier stock and GCC delivery arrangements subject to confirmation.</p>
           </div></section><script src="/shop-gallery.js" defer></script>`, {material:'Chiffon-style embroidered fabric; supplier confirmation pending',printingMethod:'Gold embroidery',origin:'Supplier confirmation pending'});
-      } else if (path === '/shop/dress/royal-teal-blue-gold-unstitched','/shop/dress/royal-black-antique-gold-unstitched' && !post) {
+      } else if (path === '/shop/dress/royal-teal-blue-gold-unstitched' && !post) {
         dressPage(res, 'Royal Teal Blue & Gold Luxury Embroidered Suit', `
           <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop/unstitched">Unstitched Collection</a> / Royal Teal Gold Suit</nav>
           <section class="dress-detail"><div class="dress-gallery"><div class="dress-thumbnails">
