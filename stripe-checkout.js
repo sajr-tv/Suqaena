@@ -15,6 +15,11 @@ async function createCheckout({secret,orderId,email,items,shippingMinor,currency
   params.set('success_url',origin+'/shop/checkout/success?session_id={CHECKOUT_SESSION_ID}');
   params.set('cancel_url',origin+'/shop/checkout?cancelled=1');
   params.set('metadata[suqaena_order_id]',orderId);
+  // Checkout-specific branding avoids changing the shared Dominion Stripe account.
+  params.set('branding_settings[display_name]','SUQAENA');
+  params.set('branding_settings[background_color]','#FFFFFF');
+  params.set('branding_settings[button_color]','#800F32');
+  params.set('branding_settings[border_style]','rounded');
   items.forEach(({name,quantity,unitMinor,imageUrl},i)=>{
     const p='line_items['+i+']';params.set(p+'[price_data][currency]',currency);
     params.set(p+'[price_data][unit_amount]',String(unitMinor));
