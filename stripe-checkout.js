@@ -8,7 +8,7 @@ function verifyStripeSignature(raw,header,secret){
   return header.split(',').some(p=>{const [k,v]=p.trim().split('=');return k==='v1'&&/^[a-f0-9]{64}$/.test(v)&&timingSafeEqual(Buffer.from(v,'hex'),Buffer.from(expected,'hex'));});
 }
 async function createCheckout({secret,orderId,email,items,shippingMinor,currency='aed',origin}){
-  if(!secret||!/^sk_(test|live)_/.test(secret))throw Error('Stripe secret key not configured');
+  if(!secret||!/^(?:sk|rk)_(?:test|live)_/.test(secret))throw Error('Stripe secret key not configured');
   if(!/^https:\/\/[^/]+$/.test(origin))throw Error('Invalid checkout origin');
   const params=new URLSearchParams();
   params.set('mode','payment');params.set('customer_email',email);params.set('client_reference_id',orderId);
