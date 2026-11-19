@@ -10,4 +10,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
-document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.fashion-preview-cart-form').forEach(form=>form.addEventListener('submit',event=>{const size=form.closest('.fashion-preview')?.querySelector('input[name="preview-size"]:checked');if(!size){event.preventDefault();window.alert('Please select a size first.');return;}form.querySelector('input[name="size"]').value=size.value;}));});
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.fashion-preview-cart-form').forEach(form=>{
+    const card=form.closest('.fashion-preview');
+    const hidden=form.querySelector('input[name="size"]');
+    const radios=card?.querySelectorAll('input[name="preview-size"]')||[];
+    const sync=()=>{const selected=card?.querySelector('input[name="preview-size"]:checked');if(hidden)hidden.value=selected?.value||'';};
+    radios.forEach(radio=>radio.addEventListener('change',sync));
+    form.addEventListener('submit',event=>{
+      sync();
+      if(!hidden?.value){event.preventDefault();window.alert('Please select a dress size first.');card?.querySelector('input[name="preview-size"]')?.focus();}
+    });
+  });
+});
