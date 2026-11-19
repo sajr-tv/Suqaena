@@ -15,10 +15,11 @@ async function createCheckout({secret,orderId,email,items,shippingMinor,currency
   params.set('success_url',origin+'/shop/checkout/success?session_id={CHECKOUT_SESSION_ID}');
   params.set('cancel_url',origin+'/shop/checkout?cancelled=1');
   params.set('metadata[suqaena_order_id]',orderId);
-  items.forEach(({name,quantity,unitMinor},i)=>{
+  items.forEach(({name,quantity,unitMinor,imageUrl},i)=>{
     const p='line_items['+i+']';params.set(p+'[price_data][currency]',currency);
     params.set(p+'[price_data][unit_amount]',String(unitMinor));
     params.set(p+'[price_data][product_data][name]',name.slice(0,200));
+    if(imageUrl && /^https:\/\/[^\s]+$/.test(imageUrl))params.set(p+'[price_data][product_data][images][0]',imageUrl);
     params.set(p+'[quantity]',String(quantity));
   });
   if(shippingMinor>0){const i=items.length,p='line_items['+i+']';params.set(p+'[price_data][currency]',currency);params.set(p+'[price_data][unit_amount]',String(shippingMinor));params.set(p+'[price_data][product_data][name]','Delivery');params.set(p+'[quantity]','1');}
