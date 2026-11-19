@@ -1581,7 +1581,7 @@ function commerce(env = process.env) {
           <details><summary>Fabric &amp; Measurements</summary><p>Unstitched collection. Fabric material, lengths and dupatta inclusion pending supplier confirmation.</p></details>
           <details><summary>Delivery &amp; Returns</summary><p>Delivery availability, charges and returns confirmed before orders are accepted.</p></details>
           </div></section><script src="/shop-gallery.js" defer></script>`, {material:'Unstitched; composition pending confirmation',printingMethod:'Decorative embroidery',origin:'Supplier origin pending confirmation'});
-      } else if (path === '/shop/dress/royal-teal-gold-unstitched','/shop/dress/royal-teal-blue-gold-unstitched' && !post) {
+      } else if (path === '/shop/dress/royal-teal-gold-unstitched' && !post) {
         dressPage(res, 'Royal Teal & Gold Luxury Embroidered 3-Piece Unstitched Suit', `
           <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop/unstitched">Unstitched Collection</a> / Royal Teal &amp; Gold</nav>
           <section class="dress-detail"><div class="dress-gallery"><div class="dress-thumbnails">
