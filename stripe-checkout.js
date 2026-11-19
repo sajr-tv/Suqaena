@@ -20,6 +20,8 @@ async function createCheckout({secret,orderId,email,items,shippingMinor,currency
   params.set('branding_settings[background_color]','#FFFFFF');
   params.set('branding_settings[button_color]','#800F32');
   params.set('branding_settings[border_style]','rounded');
+  params.set('branding_settings[icon][type]','url');
+  params.set('branding_settings[icon][url]',origin+'/suqaena-stripe-logo.png');
   items.forEach(({name,quantity,unitMinor,imageUrl},i)=>{
     const p='line_items['+i+']';params.set(p+'[price_data][currency]',currency);
     params.set(p+'[price_data][unit_amount]',String(unitMinor));
