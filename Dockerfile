@@ -142,6 +142,7 @@ COPY suqaena-champagne-beige-embroidered-detail.png ./suqaena-champagne-beige-em
 COPY ["suqaena-royal-black-gold-main.png", "suqaena-royal-black-gold-side.png", "suqaena-royal-black-gold-closeup.png", "./public/"]
 COPY ["suqaena-pastel-mint-lawn-main.png", "suqaena-pastel-mint-lawn-sid.png", "suqaena-pastel-mint-lawn-closeup.png", "./public/"]
 COPY ["suqaena-ivory-red-floral-main.png", "suqaena-ivory-red-floral-side.png", "suqaena-ivory-red-floral-closeup.png", "./public/"]
+COPY ["suqaena-deep-teal-lawn-main.png", "suqaena-deep-teal-lawn-side.png", "suqaena-deep-teal-lawn-closeup.png", "./public/"]
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
