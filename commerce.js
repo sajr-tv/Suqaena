@@ -2300,7 +2300,7 @@ function commerce(env = process.env) {
         if (!session) { redirect(res, '/shop/account'); return true; }
         const items = await lines();
         if (!items.length || items.length !== cart.size) throw invalid('Your shopping bag is empty or needs review.');
-        const stockVerified = items.every(line => !line.preview && line.quantity <= line.variant.quantity);
+        const stockVerified = items.every(line => line.preview || line.quantity <= line.variant.quantity);
         const selected = post ? get('country') : url.searchParams.get('country') || 'AE';
         const country = String(selected).toUpperCase();
         if (!/^[A-Z]{2}$/.test(country) || !new Intl.DisplayNames(['en'], {type:'region'}).of(country) || new Intl.DisplayNames(['en'], {type:'region'}).of(country) === country) throw invalid('Enter a valid two-letter delivery country code.');
@@ -2310,11 +2310,9 @@ function commerce(env = process.env) {
           Number.isFinite(market.rate) && market.rate > 0 && typeof market.eta === 'string' && market.eta.length > 0;
         const total = configured ? items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0) * market.rate + market.fee : 0;
         if (post) {
-          if (!gcc && stockVerified && env.SUQAENA_CARD_CHECKOUT_ENABLED === 'true' && env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET) {
-            const allowedCountries = (env.SUQAENA_CARD_SHIPPING_AED_JSON || '{}');
-            let rates;
-            try { rates = JSON.parse(allowedCountries); } catch { throw invalid('Shipping configuration unavailable.'); }
-            if (!Object.hasOwn(rates,country)) throw invalid('Delivery is not available for this destination.');
+          if (stockVerified && env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET) {
+            const stripeCountries = new Set([...Object.keys(countryNames), 'GB','US','CA','AU','PK','IN','DE','FR']);
+            if (!stripeCountries.has(country)) throw invalid('Delivery is not available for this destination.');
             const shippingAED = 0; // SUQAENA customer-facing free delivery policy
             const address = Object.fromEntries(['first_name','last_name','phone','street','city','region','postal_code'].map(k => [k,get(k).trim()]));
             if (['first_name','last_name','phone','street','city','region'].some(k => address[k].length < 2 || address[k].length > 150)) throw invalid('Complete your delivery details.');
@@ -2345,7 +2343,8 @@ function commerce(env = process.env) {
           cookie(res, 'shop_cart_owner', '', 0);
           redirect(res, '/shop/account');
         } else {
-          const method = gcc ? 'Cash on Delivery (pending activation)' : 'Credit / Debit Card via Stripe (pending verification)';
+          const cardReady = stockVerified && Boolean(env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET);
+          const method = 'Credit / Debit Card via Stripe';
           const subtotal = items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0);
           const destinations = {...countryNames, GB:'United Kingdom', US:'United States', CA:'Canada', AU:'Australia', PK:'Pakistan', IN:'India', DE:'Germany', FR:'France'};
           const destinationOptions = Object.entries(destinations).map(([code,name]) =>
@@ -2354,7 +2353,7 @@ function commerce(env = process.env) {
             const imageUrl = product.images?.[0] || '';
             return `<div class="checkout-item">${imageUrl ? `<img src="${escape(imageUrl)}" alt="${escape(publicLabel(product.title))}" loading="lazy">` : '<span class="checkout-item-placeholder">SQ</span>'}<div><strong>${escape(publicLabel(product.title))}</strong><small>${variant.size === 'Unstitched' ? 'Unstitched Fabric' : 'Size ' + escape(variant.size)} · ${escape(variant.color)} · Qty ${quantity}</small></div><b>${money(variant.price * quantity)}</b></div>`;
           }).join('');
-          const previewNotice = !stockVerified ? 'Supplier stock and delivery charges are not yet confirmed. You can review your details, but this order cannot be submitted.' : !configured ? 'Delivery charges and fulfilment must be confirmed before ordering opens.' : 'Checkout will open after final payment and courier verification.';
+          const previewNotice = !stockVerified ? 'One or more items are unavailable in the selected quantity.' : !cardReady ? 'Secure card checkout is temporarily unavailable.' : 'Secure payment is processed by Stripe. Your order is confirmed after successful payment.';
           const checkoutHtml = `<section class="checkout-shell">
             <div class="checkout-heading"><p class="account-eyebrow">SUQAENA · THE SIGNATURE EDIT</p><h1>Secure Checkout</h1><p>Almost yours. Review your delivery details and beautiful selections.</p></div>
             <form id="checkout-country-form" action="/shop/checkout" method="get"></form><div class="checkout-grid">
@@ -2365,14 +2364,14 @@ function commerce(env = process.env) {
                 <div class="checkout-country"><label>Country / Region<select name="country" form="checkout-country-form">${destinationOptions}</select></label><button type="submit" form="checkout-country-form">Update country</button></div>
                 <div class="checkout-fields"><label class="checkout-wide">Street address<input name="street" autocomplete="street-address" placeholder="Building, street and apartment"></label><label>City<input name="city" autocomplete="address-level2" placeholder="City"></label><label><span id="checkout-region-label">State / Emirate</span><input id="checkout-region" name="region" autocomplete="address-level1" placeholder="State or emirate"></label><label class="checkout-wide">Postal code (if applicable)<input name="postal_code" autocomplete="postal-code" placeholder="Postal code"></label><label class="checkout-wide">Delivery notes (optional)<textarea rows="3" placeholder="Landmark or special delivery instructions"></textarea></label></div>
                 <div class="checkout-section-heading"><span>03</span><div><h2>Payment Method</h2><p>Selected automatically from your delivery destination.</p></div></div>
-                <div class="checkout-payment"><span class="checkout-payment-icon">${gcc ? '✦' : '▣'}</span><div><strong>${method}</strong><small>${gcc ? 'Pay your courier on delivery once COD service is activated.' : 'Stripe card payment will be offered when available for your destination.'}</small></div><span class="checkout-selected">${stockVerified && (gcc ? configured : env.SUQAENA_CARD_CHECKOUT_ENABLED === "true") ? "Selected" : "Pending"}</span></div>
+                <div class="checkout-payment"><span class="checkout-payment-icon">▣</span><div><strong>${method}</strong><small>Pay securely online in AED with Stripe.</small></div><span class="checkout-selected">${cardReady ? 'Selected' : 'Pending'}</span></div>
                 <p class="checkout-note">Payment collection is only available after supplier stock and delivery arrangements are verified.</p></form>
               </div>
               <aside class="checkout-summary"><p class="account-eyebrow">YOUR SELECTION</p><h2>Order Summary</h2>${itemCards}
-                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div><span>Shipping</span><strong>To be confirmed</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Items total</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${money(subtotal)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Shipping charges are not included.</p></div>
+                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div><span>Shipping</span><strong>Free</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Items total</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${money(subtotal)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Free delivery is included in the displayed total.</p></div>
                 <p class="checkout-warning">${escape(previewNotice)}</p>
-                ${!gcc && stockVerified && env.SUQAENA_CARD_CHECKOUT_ENABLED === "true" && env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET && env.SUQAENA_CARD_SHIPPING_AED_JSON ? '<button type="submit" form="suqaena-order-form" class="checkout-place-order">Pay securely with Stripe</button>' : '<button type="button" class="checkout-place-order" disabled>Place Order · Coming Soon</button>'}
-                <p class="checkout-security">♢ No payment is collected while checkout is unavailable</p><a class="checkout-back" href="/shop/cart">← Return to Shopping Bag</a>
+                ${cardReady ? '<button type="submit" form="suqaena-order-form" class="checkout-place-order">Pay securely with Stripe</button>' : '<button type="button" class="checkout-place-order" disabled>Card Payment Unavailable</button>'}
+                <p class="checkout-security">♢ Secure card payment is handled by Stripe</p><a class="checkout-back" href="/shop/cart">← Return to Shopping Bag</a>
               </aside>
             </div>
           </section>`;
