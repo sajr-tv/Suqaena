@@ -26,6 +26,44 @@
     const img=document.createElement('img');img.src=product.src;img.alt=product.title;img.loading='lazy';
     const name=document.createElement('strong');name.textContent=product.title;link.append(img,name);return link;
   }
+  function enableSwipe(track){
+    const viewport=track.parentElement;
+    viewport.style.touchAction='pan-y';
+    viewport.style.cursor='grab';
+    let active=null,suppressClick=false;
+    viewport.addEventListener('pointerdown',event=>{
+      if(event.pointerType==='mouse'&&event.button!==0)return;
+      const animation=track.getAnimations().find(a=>a.effect&&a.playState!=='finished');
+      if(!animation)return;
+      active={id:event.pointerId,x:event.clientX,last:event.clientX,moved:false,animation};
+      animation.pause();viewport.style.cursor='grabbing';
+    });
+    viewport.addEventListener('pointermove',event=>{
+      if(!active||event.pointerId!==active.id)return;
+      const delta=event.clientX-active.last;
+      if(Math.abs(event.clientX-active.x)>7)active.moved=true;
+      if(!active.moved)return;
+      if(event.pointerType==='mouse'&&!viewport.hasPointerCapture(event.pointerId))viewport.setPointerCapture(event.pointerId);
+      const duration=active.animation.effect.getTiming().duration;
+      const distance=track.scrollWidth/2;
+      if(Number.isFinite(duration)&&distance>0){
+        const current=Number(active.animation.currentTime)||0;
+        active.animation.currentTime=((current-delta/distance*duration)%duration+duration)%duration;
+      }
+      active.last=event.clientX;
+    });
+    const finish=event=>{
+      if(!active||event.pointerId!==active.id)return;
+      suppressClick=active.moved;
+      active.animation.play();active=null;viewport.style.cursor='grab';
+      if(viewport.hasPointerCapture(event.pointerId))viewport.releasePointerCapture(event.pointerId);
+    };
+    viewport.addEventListener('pointerup',finish);
+    viewport.addEventListener('pointercancel',finish);
+    viewport.addEventListener('click',event=>{
+      if(suppressClick){event.preventDefault();event.stopPropagation();suppressClick=false;}
+    },true);
+  }
   await Promise.all(groups.map(async group=>{
     const track=document.getElementById(group.id);if(!track)return;
     const products=new Map();
@@ -35,5 +73,6 @@
     for(const product of items)track.append(makeCard(product,false));
     if(items.length>1){for(const product of items)track.append(makeCard(product,true));track.style.animationDuration=Math.max(45,items.length*5)+'s'}
     else track.style.animation='none';
+    if(items.length>1)enableSwipe(track);
   }));
 })();
