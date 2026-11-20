@@ -2485,7 +2485,7 @@ function commerce(env = process.env) {
         }
       } else page(res, 'Page unavailable', '', 404);
     } catch (error) {
-      if (!error.status) console.error('Shop request failed', error.code || error.name);
+      if (!error.status) console.error('Shop request failed', path, error && (error.stack || error.message || error));
       if (!res.headersSent) page(res, error.status ? 'Check your request' : 'Shop temporarily unavailable',
         error.status ? `<p>${escape(error.message)}</p>` : '', error.status || 503);
     }
