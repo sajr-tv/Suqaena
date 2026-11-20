@@ -14,6 +14,23 @@ const categories = [
 const countryNames = { AE: 'United Arab Emirates', SA: 'Saudi Arabia', QA: 'Qatar',
   KW: 'Kuwait', BH: 'Bahrain', OM: 'Oman' };
 const markets = { AE: 'AED', SA: 'SAR', QA: 'QAR', KW: 'KWD', BH: 'BHD', OM: 'OMR' };
+const checkoutCurrencies = {AE:'AED',SA:'SAR',QA:'QAR',KW:'KWD',BH:'BHD',OM:'OMR',PK:'PKR',IN:'INR',GB:'GBP',US:'USD',CA:'CAD',AU:'AUD',DE:'EUR',FR:'EUR'};
+let exchangeCache = {expires:0,rates:null};
+async function checkoutExchangeRates() {
+  if (exchangeCache.rates && Date.now() < exchangeCache.expires) return exchangeCache.rates;
+  try {
+    const response = await fetch('https://open.er-api.com/v6/latest/AED',{signal:AbortSignal.timeout(3500)});
+    if (!response.ok) throw Error('Exchange rate service unavailable');
+    const data = await response.json();
+    if (data.result !== 'success' || !data.rates || data.rates.AED !== 1) throw Error('Invalid exchange rate response');
+    exchangeCache = {rates:data.rates,expires:Date.now()+3600000};
+    return data.rates;
+  } catch {
+    // Never display an unverified converted amount as if it were payable.
+    return null;
+  }
+}
+
 const schema = `
 CREATE TABLE IF NOT EXISTS shop_products (
   id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY, supplier text NOT NULL,
@@ -2512,12 +2529,22 @@ function commerce(env = process.env) {
           const method = 'Credit / Debit Card via Stripe';
           const subtotal = items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0);
           const pakistanDiscount = country === 'PK' ? Math.min(50, Math.max(0, subtotal - 2)) : 0;
+          const localCurrency = checkoutCurrencies[country] || 'AED';
+          const liveRates = localCurrency === 'AED' ? null : await checkoutExchangeRates();
+          const rate = localCurrency === 'AED' ? 1 : liveRates?.[localCurrency];
+          const localDisplay = Number.isFinite(rate) && rate > 0;
+          const localMoney = amount => localDisplay
+            ? new Intl.NumberFormat('en',{style:'currency',currency:localCurrency,maximumFractionDigits:localCurrency==='PKR'||localCurrency==='INR'?0:2}).format(amount*rate)
+            : money(amount);
+          const currencyNote = localCurrency === 'AED' ? 'Charged in AED.' : localDisplay
+            ? 'Approximate '+localCurrency+' equivalent. Your card will be charged in AED; your bank determines the final exchange rate and may charge conversion fees.'
+            : 'Live currency conversion is temporarily unavailable. Your card will be charged in AED.';
           const destinations = {...countryNames, GB:'United Kingdom', US:'United States', CA:'Canada', AU:'Australia', PK:'Pakistan', IN:'India', DE:'Germany', FR:'France'};
           const destinationOptions = Object.entries(destinations).map(([code,name]) =>
             `<option value="${code}"${country === code ? ' selected' : ''}>${escape(name)}</option>`).join('');
           const itemCards = items.map(({product,variant,quantity}) => {
             const imageUrl = product.images?.[0] || '';
-            return `<div class="checkout-item" style="border:2px solid #161616;border-radius:9px;padding:14px 12px;margin:12px 0;background:#fff;box-sizing:border-box">${imageUrl ? `<img src="${escape(imageUrl)}" alt="${escape(publicLabel(product.title))}" loading="lazy">` : '<span class="checkout-item-placeholder">SQ</span>'}<div><strong>${escape(publicLabel(product.title))}</strong><small>${variant.size === 'Unstitched' ? 'Unstitched Fabric' : 'Size ' + escape(variant.size)} · ${escape(variant.color)} · Qty ${quantity}</small></div><b>${money(variant.price * quantity)}</b></div>`;
+            return `<div class="checkout-item" style="border:2px solid #161616;border-radius:9px;padding:14px 12px;margin:12px 0;background:#fff;box-sizing:border-box">${imageUrl ? `<img src="${escape(imageUrl)}" alt="${escape(publicLabel(product.title))}" loading="lazy">` : '<span class="checkout-item-placeholder">SQ</span>'}<div><strong>${escape(publicLabel(product.title))}</strong><small>${variant.size === 'Unstitched' ? 'Unstitched Fabric' : 'Size ' + escape(variant.size)} · ${escape(variant.color)} · Qty ${quantity}</small></div><b>${localMoney(variant.price * quantity)}</b></div>`;
           }).join('');
           const previewNotice = !stockVerified ? 'One or more items are unavailable in the selected quantity.' : !cardReady ? 'Secure card checkout is temporarily unavailable.' : 'Secure payment is processed by Stripe. Your order is confirmed after successful payment.';
           const checkoutHtml = `<section class="checkout-shell">
@@ -2534,7 +2561,7 @@ function commerce(env = process.env) {
                 <p class="checkout-note">Payment collection is only available after supplier stock and delivery arrangements are verified.</p></form>
               </div>
               <aside class="checkout-summary"><p class="account-eyebrow">YOUR SELECTION</p><h2>Order Summary</h2>${itemCards}
-                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div>${pakistanDiscount ? `<div><span>Pakistan discount</span><strong>− ${money(pakistanDiscount)}</strong></div>` : ''}<div><span>Shipping</span><strong>Free</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Pay</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${money(subtotal - pakistanDiscount)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Free delivery is included in the displayed total.</p></div>
+                <div class="checkout-totals"><div><span>Subtotal</span><strong>${localMoney(subtotal)}</strong></div>${pakistanDiscount ? `<div><span>Pakistan discount</span><strong>− ${localMoney(pakistanDiscount)}</strong></div>` : ''}<div><span>Shipping</span><strong>Free</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Pay</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${localMoney(subtotal - pakistanDiscount)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Free international delivery. ${escape(currencyNote)}</p></div>
                 <p class="checkout-warning">${escape(previewNotice)}</p>
                 ${cardReady ? '<button type="submit" form="suqaena-order-form" class="checkout-place-order">Pay securely with Stripe</button>' : '<button type="button" class="checkout-place-order" disabled>Card Payment Unavailable</button>'}
                 <p class="checkout-security">♢ Secure card payment is handled by Stripe</p><a class="checkout-back" href="/shop/cart">← Return to Shopping Bag</a>
