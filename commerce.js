@@ -2467,11 +2467,27 @@ function commerce(env = process.env) {
               }
               return {name:product.title+' · '+variant.size+' · '+variant.color,quantity,unitMinor:Math.round(variant.price*100),imageUrl};
             });
-            const totalMinor = lineItems.reduce((n,x)=>n+x.quantity*x.unitMinor,0)+shippingAED*100;
-            const orderData = {country,paymentMethod:'stripe',currency:'aed',totalMinor,address,items:items.map(({product,variant,quantity})=>({title:product.title,sku:variant.sku,size:variant.size,quantity,unitAED:variant.price}))};
+            const originalMinor = lineItems.reduce((n,x)=>n+x.quantity*x.unitMinor,0);
+            const pakistanDiscountMinor = country === 'PK' ? Math.min(5000, Math.max(0, originalMinor - 200)) : 0;
+            let paymentItems = lineItems;
+            if (pakistanDiscountMinor) {
+              const units = lineItems.flatMap(item => Array.from({length:item.quantity},()=>({...item,quantity:1})));
+              if (units.length > 100) throw invalid('Please contact us for bulk-order checkout.');
+              let remaining = pakistanDiscountMinor;
+              for (const unit of units) {
+                const reduction = Math.min(remaining, unit.unitMinor - 1);
+                unit.unitMinor -= reduction;
+                remaining -= reduction;
+                if (!remaining) break;
+              }
+              if (remaining) throw invalid('Pakistan discount cannot be applied to this order.');
+              paymentItems = units;
+            }
+            const totalMinor = originalMinor - pakistanDiscountMinor + shippingAED*100;
+            const orderData = {country,paymentMethod:'stripe',currency:'aed',totalMinor,pakistanDiscountMinor,address,items:items.map(({product,variant,quantity})=>({title:product.title,sku:variant.sku,size:variant.size,quantity,unitAED:variant.price}))};
             await query('INSERT INTO shop_orders(id,email,data,status) VALUES($1,$2,$3,$4)',[orderId,session.email,JSON.stringify(orderData),'initiating_card']);
             try {
-              const checkout = await stripeCheckout.createCheckout({secret:env.SUQAENA_STRIPE_SECRET_KEY,orderId,email:session.email,items:lineItems,shippingMinor:shippingAED*100,currency:'aed',origin:site});
+              const checkout = await stripeCheckout.createCheckout({secret:env.SUQAENA_STRIPE_SECRET_KEY,orderId,email:session.email,items:paymentItems,shippingMinor:shippingAED*100,currency:'aed',origin:site});
               await query("UPDATE shop_orders SET data=jsonb_set(data,'{stripeSessionId}',to_jsonb($2::text)),status='pending_card' WHERE id=$1",[orderId,checkout.id]);
               redirect(res,checkout.url);
             } catch(error) {
@@ -2495,6 +2511,7 @@ function commerce(env = process.env) {
           const cardReady = stockVerified && Boolean(env.SUQAENA_STRIPE_SECRET_KEY && env.SUQAENA_STRIPE_WEBHOOK_SECRET);
           const method = 'Credit / Debit Card via Stripe';
           const subtotal = items.reduce((sum, line) => sum + line.quantity * line.variant.price, 0);
+          const pakistanDiscount = country === 'PK' ? Math.min(50, Math.max(0, subtotal - 2)) : 0;
           const destinations = {...countryNames, GB:'United Kingdom', US:'United States', CA:'Canada', AU:'Australia', PK:'Pakistan', IN:'India', DE:'Germany', FR:'France'};
           const destinationOptions = Object.entries(destinations).map(([code,name]) =>
             `<option value="${code}"${country === code ? ' selected' : ''}>${escape(name)}</option>`).join('');
@@ -2517,7 +2534,7 @@ function commerce(env = process.env) {
                 <p class="checkout-note">Payment collection is only available after supplier stock and delivery arrangements are verified.</p></form>
               </div>
               <aside class="checkout-summary"><p class="account-eyebrow">YOUR SELECTION</p><h2>Order Summary</h2>${itemCards}
-                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div><span>Shipping</span><strong>Free</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Pay</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${money(subtotal)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Free delivery is included in the displayed total.</p></div>
+                <div class="checkout-totals"><div><span>Subtotal</span><strong>${money(subtotal)}</strong></div>${pakistanDiscount ? `<div><span>Pakistan discount</span><strong>− ${money(pakistanDiscount)}</strong></div>` : ''}<div><span>Shipping</span><strong>Free</strong></div><div class="checkout-grand" style="display:flex;align-items:center;justify-content:space-between;gap:16px"><span style="font-size:1rem;font-weight:600;line-height:1.35">Pay</span><strong style="font-size:1.25rem;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0">${money(subtotal - pakistanDiscount)}</strong></div><p style="font-size:.75rem;line-height:1.5;margin:6px 0 0;color:#765b60">Free delivery is included in the displayed total.</p></div>
                 <p class="checkout-warning">${escape(previewNotice)}</p>
                 ${cardReady ? '<button type="submit" form="suqaena-order-form" class="checkout-place-order">Pay securely with Stripe</button>' : '<button type="button" class="checkout-place-order" disabled>Card Payment Unavailable</button>'}
                 <p class="checkout-security">♢ Secure card payment is handled by Stripe</p><a class="checkout-back" href="/shop/cart">← Return to Shopping Bag</a>
