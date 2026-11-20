@@ -156,6 +156,9 @@ COPY ["suqaena-pastel-lime-lavender-lawn-main.png", "suqaena-pastel-lime-lavende
 COPY ["suqaena-ivory-blue-floral-lawn-main.png", "suqaena-ivory-blue-floral-lawn-side.png", "suqaena-ivory-blue-floral-lawn-closeup.png", "./public/"]
 COPY ["suqaena-ivory-turquoise-floral-lawn-main.png", "suqaena-ivory-turquoise-floral-lawn-side.png", "suqaena-ivory-turquoise-floral-lawn-closeup.png", "./public/"]
 COPY ["suqaena-royal-emerald-floral-lawn-main.png", "suqaena-royal-emerald-floral-lawn-side.png", "suqaena-royal-emerald-floral-lawn-closeup.png", "./public/"]
+# Include every root-level product PNG in the served public directory automatically.
+# Future dress uploads no longer require an individual Dockerfile COPY line.
+COPY *.png ./public/
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
