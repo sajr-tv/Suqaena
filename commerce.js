@@ -2301,7 +2301,7 @@ function commerce(env = process.env) {
           <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
           <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><input type="hidden" name="return_to" value="/shop/dress/royal-ice-blue-floral-lawn-unstitched"><input type="hidden" name="product" value="royalicebluefloral261121"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
           <p class="dress-status">Minimum order: 1 suit. Stock and delivery subject to confirmation.</p></div></section><script src="/shop-gallery.js" defer></script>`, {material:'Lawn; supplier confirmation pending',printingMethod:'Blue floral motifs and decorative hem',origin:'Supplier confirmation pending'});
-      else if (path === '/shop/dress/royal-emerald-floral-lawn-unstitched' && !post) {
+      } else if (path === '/shop/dress/royal-emerald-floral-lawn-unstitched' && !post) {
         dressPage(res, 'Royal Emerald Green Floral Embroidered 3-Piece Unstitched Suit', `
           <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop/unstitched">Unstitched Collection</a> / <a href="/shop/unstitched/lawn">Lawn Collection</a> / Royal Emerald Floral</nav>
           <section class="dress-detail"><div class="dress-gallery"><div class="dress-thumbnails">
