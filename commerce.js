@@ -548,7 +548,7 @@ function commerce(env = process.env) {
               'preview-blushpinksilverfloral261119-ONE': {title:'Blush Pink Silver Floral Embroidered 3-Piece Unstitched Suit',image:'/suqaena-blush-pink-silver-floral-main.png',color:'Blush Pink',price:199},
               'preview-royalmagentairis261119-ONE': {title:'Royal Magenta Iris Heavy Embroidered 3-Piece Unstitched Suit',image:'/suqaena-royal-magenta-iris-main.png',color:'Royal Magenta',price:160},
               'preview-royalicebluefloral261121-ONE': {title:'Royal Ice Blue Floral 3-Piece Unstitched Lawn Suit',image:'/Suqaena-Royal-Ice-Blue-Floral-Suit-Front.png',color:'Ice Blue',price:180},
-              'preview-royalicebluefloral261121-ONE' || key === 'preview-royalemeraldflorallawn261119-ONE': {title:'Royal Emerald Green Floral Embroidered 3-Piece Unstitched Suit',image:'/suqaena-royal-emerald-floral-lawn-main.png',color:'Deep Emerald Green',price:199},
+              'preview-royalemeraldflorallawn261119-ONE': {title:'Royal Emerald Green Floral Embroidered 3-Piece Unstitched Suit',image:'/suqaena-royal-emerald-floral-lawn-main.png',color:'Deep Emerald Green',price:199},
               'preview-ivoryturquoiseflorallawn261119-ONE': {title:'Royal Ivory & Turquoise Floral Printed 3-Piece Unstitched Lawn Suit',image:'/suqaena-ivory-turquoise-floral-lawn-main.png',color:'Ivory & Turquoise',price:110},
               'preview-ivoryblueflorallawn261119-ONE': {title:'Royal Ivory White & Blue Floral Digital Printed 3-Piece Unstitched Lawn Suit',image:'/suqaena-ivory-blue-floral-lawn-main.png',color:'Ivory White & Dusty Blue',price:100},
               'preview-pastellimelavenderlawn261119-ONE': {title:'Royal Pastel Lime Green & Lavender Floral Embroidered 3-Piece Unstitched Lawn Suit',image:'/suqaena-pastel-lime-lavender-lawn-main.png',color:'Pastel Lime & Lavender',price:130},
@@ -2301,7 +2301,7 @@ function commerce(env = process.env) {
           <div class="dress-qty"><label for="dress-quantity">Quantity</label><div><button type="button" id="dress-minus" aria-label="Decrease quantity">−</button><output id="dress-quantity" aria-live="polite">1</output><button type="button" id="dress-plus" aria-label="Increase quantity">+</button></div></div>
           <form id="dress-preview-form" action="/shop/cart/preview" method="post"><input type="hidden" name="quantity" id="dress-cart-quantity" value="1"><input type="hidden" name="return_to" value="/shop/dress/royal-ice-blue-floral-lawn-unstitched"><input type="hidden" name="product" value="royalicebluefloral261121"><button class="dress-add" type="submit">Add to Shopping Bag</button></form>
           <p class="dress-status">Minimum order: 1 suit. Stock and delivery subject to confirmation.</p></div></section><script src="/shop-gallery.js" defer></script>`, {material:'Lawn; supplier confirmation pending',printingMethod:'Blue floral motifs and decorative hem',origin:'Supplier confirmation pending'});
-      } else if (path === '/shop/dress/royal-emerald-floral-lawn-unstitched' && !post) {
+      else if (path === '/shop/dress/royal-emerald-floral-lawn-unstitched' && !post) {
         dressPage(res, 'Royal Emerald Green Floral Embroidered 3-Piece Unstitched Suit', `
           <nav class="dress-breadcrumb"><a href="/">Home</a> / <a href="/shop/unstitched">Unstitched Collection</a> / <a href="/shop/unstitched/lawn">Lawn Collection</a> / Royal Emerald Floral</nav>
           <section class="dress-detail"><div class="dress-gallery"><div class="dress-thumbnails">
