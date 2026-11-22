@@ -347,6 +347,11 @@ function commerce(env = process.env) {
       const session = /^[a-f0-9]{64}$/.test(token || '') ? (await query(
         'SELECT s.email,u.first_name,u.last_name FROM shop_sessions s JOIN shop_users u ON u.email=s.email WHERE s.token=$1 AND s.expires>now()', [digest(token)]
       )).rows[0] : null;
+      if (path === '/shop/auth/status' && !post) {
+        res.writeHead(200, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+        res.end(JSON.stringify({signedIn:!!session, firstName:session?.first_name || ''}));
+        return true;
+      }
       res.shopFirstName = session?.first_name || '';
       res.shopInitial = session ? ((session.first_name || session.email)[0] || '').toUpperCase() + (session.last_name ? session.last_name[0].toUpperCase() : '') : '';
       const signature = cookies.shop_admin || '';
