@@ -17,3 +17,16 @@ fetch('/shop/me',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(u
   const bag=links.querySelector('.suqaena-bag-link');
   if(bag&&user.cartCount)bag.setAttribute('aria-label','Shopping bag — '+user.cartCount+' items');
 }).catch(()=>{});
+
+// Keep the homepage account actions in sync with the server-side login session.
+fetch('/shop/auth/status',{credentials:'same-origin',cache:'no-store'})
+  .then(response=>{if(!response.ok)throw new Error('Session unavailable');return response.json()})
+  .then(({signedIn,firstName})=>{
+    if(!signedIn)return;
+    document.querySelectorAll('.suqaena-signup').forEach(link=>link.remove());
+    document.querySelectorAll('.suqaena-signin').forEach(link=>{
+      link.textContent=firstName?('My Account · '+firstName):'My Account';
+      link.href='/shop/account';
+      link.setAttribute('aria-label','View my account');
+    });
+  }).catch(()=>{});
