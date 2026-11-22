@@ -1,6 +1,6 @@
 (async function(){
   const groups=[
-    {id:'suqaena-saree-track',urls:['/shop?category=Sarees&type=sarees','/shop?category=Sarees']},
+    {id:'suqaena-saree-track',urls:['/shop?category=Ready-to-Wear&type=sarees','/shop?category=Sarees']},
     {id:'suqaena-lawn-track',urls:['/shop/unstitched/lawn','/shop?category=Embroidered%20Lawn%20and%20Chiffon']},
     {id:'suqaena-stitched-track',urls:['/shop?category=Ready-to-Wear&type=three-piece','/shop?category=Ready-to-Wear','/shop/ready-to-wear']},
     {id:'suqaena-unstitched-track',urls:['/shop/unstitched/chiffon','/shop/unstitched/lawn','/shop/unstitched/cotton','/shop/unstitched/silk','/shop?category=Unstitched%202-Piece%20and%203-Piece%20Suits']}
@@ -24,7 +24,7 @@
   function makeCard(product,duplicate){
     const link=document.createElement('a');link.className='suqaena-conveyor-card';link.href=product.href;
     if(duplicate){link.setAttribute('aria-hidden','true');link.tabIndex=-1}
-    const img=document.createElement('img');img.src=product.src;img.alt=product.title;img.loading='lazy';
+    const img=document.createElement('img');img.src=product.src;img.alt=product.title;img.loading='lazy';img.addEventListener('error',()=>{link.remove();console.warn('SUQAENA skipped unavailable product image',product.href)});
     const name=document.createElement('strong');name.textContent=product.title;link.append(img,name);return link;
   }
   function enableSwipe(track){
