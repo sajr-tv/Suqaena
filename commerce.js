@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS shop_products (
 );
 CREATE TABLE IF NOT EXISTS shop_users (
   email text PRIMARY KEY, password text NOT NULL,
-  first_name text, last_name text
+  first_name text, last_name text, avatar_url text
 );
 CREATE TABLE IF NOT EXISTS shop_sessions (
   token text PRIMARY KEY, email text NOT NULL REFERENCES shop_users(email),
@@ -136,11 +136,13 @@ function commerce(env = process.env) {
   }
   const site = env.SHOP_ORIGIN || 'https://suqaena.com';
   const secure = new URL(site).protocol === 'https:';
+  const safeGoogleAvatar = value => { try { const url = new URL(value); return url.protocol === 'https:' && (url.hostname === 'lh3.googleusercontent.com' || url.hostname === 'googleusercontent.com' || url.hostname.endsWith('.googleusercontent.com')) ? url.href : ''; } catch { return ''; } };
   const admin = (env.SHOP_ADMIN_EMAIL || '').trim().toLowerCase();
   const adminEnabled = admin && (env.SHOP_ADMIN_PASSWORD || '').length >= 20;
   const adminSignature = token => createHmac('sha256', env.SHOP_ADMIN_PASSWORD)
     .update(`suqaena-admin:${admin}:${token}`).digest('hex');
   let activeLogins = 0;
+  if (pool) query('ALTER TABLE shop_users ADD COLUMN IF NOT EXISTS avatar_url text').catch(error => console.error('Avatar migration failed:',error.code || error.message));
 
   const dressHeader = `<div class="dress-site-header"><div class="suqaena-announcement"><span>Delivery Worldwide</span><span>Easy Returns &amp; Exchanges</span><span>Pakistani Fashion Collections</span></div><div class="dress-brand-row"><a class="dress-brand" href="/" aria-label="SUQAENA home"><span class="dress-monogram">SQ</span><span class="suqaena-brand-wordmark">SUQAENA<small>Women’s Clothing</small></span></a><div class="dress-header-actions"><a href="/shop" aria-label="Search dresses" title="Browse dresses">⌕ <small>Search</small></a><a href="/shop/account" aria-label="Sign in or view account" title="Account">♡ <small>Account</small></a><a href="/shop/cart" aria-label="Shopping cart" title="Cart">♧ <small>Cart</small></a></div></div><nav class="dress-top-nav" aria-label="Dress collections"><a href="/">Home</a><a href="/shop?category=Pakistani%20Designer-Inspired%20Clothing">Designers <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop">New Arrivals <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop/ready-to-wear">Casual Wear <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?category=Formal%20and%20Party%20Wear">Formal Wear <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?category=Luxury%20Pret">Luxury Pret <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop/unstitched">Unstitched <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?search=nightwear">Nightwear <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?category=Bridal%20and%20Festive%20Wear">Bridal & Wedding <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop">Collections <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?category=Accessories">Accessories <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a><a href="/shop?search=sale">Sale <span class="dress-nav-chevron" aria-hidden="true">⌄</span></a></nav></div><style>.suqaena-announcement{display:flex;justify-content:space-around;gap:14px;flex-wrap:wrap;background:#790014;color:white;padding:11px 18px;text-align:center;font:600 13px Georgia,serif}.suqaena-announcement span+span{border-left:1px solid #d6a77e;padding-left:24px}.dress-site-header .dress-brand-row{min-height:135px;justify-content:center;position:relative;background:#fff}.dress-site-header .dress-brand{display:flex;align-items:center;gap:22px;text-decoration:none;color:#790014;font:normal clamp(28px,4vw,55px) Georgia,serif}.dress-site-header .dress-monogram{font:normal clamp(48px,6vw,85px) Georgia,serif;color:#bc8c25}.suqaena-brand-wordmark{display:flex;flex-direction:column;align-items:center;line-height:1.05;letter-spacing:.06em}.suqaena-brand-wordmark small{color:#ae7d25;font:normal clamp(13px,1.6vw,23px) Georgia,serif;letter-spacing:0;margin-top:8px}.dress-site-header .dress-header-actions{position:absolute;right:24px;top:50%;transform:translateY(-50%)}.dress-site-header .dress-top-nav{display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;background:#fffaf5;border-top:1px solid #ead4b7;border-bottom:1px solid #ead4b7;padding:14px 12px;gap:14px}.dress-site-header .dress-top-nav a{color:#740016;font-family:Georgia,serif;text-decoration:none}.dress-site-header .dress-top-nav a:hover{color:#b7832b}@media(max-width:700px){.suqaena-announcement{font-size:10px}.suqaena-announcement span+span{border:0;padding:0}.dress-site-header .dress-brand-row{min-height:95px}.dress-site-header .dress-header-actions{position:static;transform:none}.dress-site-header .dress-brand{font-size:25px;gap:8px}.dress-site-header .dress-monogram{font-size:38px}.dress-site-header .dress-top-nav{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;gap:16px;padding:12px}.dress-site-header .dress-top-nav a{white-space:nowrap}}</style>`;
   function publicLabel(value) {
@@ -345,11 +347,11 @@ function commerce(env = process.env) {
       const cookies = Object.fromEntries((req.headers.cookie || '').split(/; */).map(entry => entry.split('=')));
       const token = cookies.shop_session;
       const session = /^[a-f0-9]{64}$/.test(token || '') ? (await query(
-        'SELECT s.email,u.first_name,u.last_name FROM shop_sessions s JOIN shop_users u ON u.email=s.email WHERE s.token=$1 AND s.expires>now()', [digest(token)]
+        'SELECT s.email,u.first_name,u.last_name,u.avatar_url FROM shop_sessions s JOIN shop_users u ON u.email=s.email WHERE s.token=$1 AND s.expires>now()', [digest(token)]
       )).rows[0] : null;
       if (path === '/shop/auth/status' && !post) {
         res.writeHead(200, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
-        res.end(JSON.stringify({signedIn:!!session, firstName:session?.first_name || ''}));
+        res.end(JSON.stringify({signedIn:!!session, firstName:session?.first_name || '', avatarUrl:safeGoogleAvatar(session?.avatar_url)}));
         return true;
       }
       res.shopFirstName = session?.first_name || '';
@@ -2897,7 +2899,7 @@ function commerce(env = process.env) {
             profile.email_verified !== 'true' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email || '')) throw invalid('Google identity is not verified.');
         const email = profile.email.toLowerCase();
         if (email === admin) throw invalid('Use the administrator password to sign in.');
-        await query('INSERT INTO shop_users(email,password) VALUES ($1,$2) ON CONFLICT DO NOTHING',[email,'google:oauth']);
+        await query(`INSERT INTO shop_users(email,password,first_name,last_name,avatar_url) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (email) DO UPDATE SET first_name=COALESCE(NULLIF(shop_users.first_name,''),EXCLUDED.first_name),last_name=COALESCE(NULLIF(shop_users.last_name,''),EXCLUDED.last_name),avatar_url=EXCLUDED.avatar_url`,[email,'google:oauth',String(profile.given_name || profile.name?.split(' ')[0] || '').slice(0,60),String(profile.family_name || '').slice(0,60),safeGoogleAvatar(profile.picture)]);
         const newToken = randomBytes(32).toString('hex');
         if (session) await query('DELETE FROM shop_sessions WHERE token=$1',[digest(token)]);
         await query('INSERT INTO shop_sessions(token,email) VALUES ($1,$2)',[digest(newToken),email]);
