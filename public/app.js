@@ -21,11 +21,12 @@ fetch('/shop/me',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(u
 // Keep the homepage account actions in sync with the server-side login session.
 fetch('/shop/auth/status',{credentials:'same-origin',cache:'no-store'})
   .then(response=>{if(!response.ok)throw new Error('Session unavailable');return response.json()})
-  .then(({signedIn,firstName})=>{
+  .then(({signedIn,firstName,avatarUrl})=>{
     if(!signedIn)return;
     document.querySelectorAll('.suqaena-signup').forEach(link=>link.remove());
     document.querySelectorAll('.suqaena-signin').forEach(link=>{
-      link.textContent=firstName?('My Account · '+firstName):'My Account';
+      link.textContent=firstName||'My Account';
+      if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.alt='';img.referrerPolicy='no-referrer';img.style.cssText='width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px';link.prepend(img)}
       link.href='/shop/account';
       link.setAttribute('aria-label','View my account');
     });
