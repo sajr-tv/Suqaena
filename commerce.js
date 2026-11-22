@@ -2922,7 +2922,7 @@ function commerce(env = process.env) {
             if (password !== get('confirm_password')) throw invalid('Passwords do not match.');
             if (get('terms') !== 'yes') throw invalid('Please accept the Terms and Privacy Policy.');
           }
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || password.length < 12 || password.length > 128) throw invalid('Use a valid email and a password of 12–128 characters.');
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || password.length < 10 || password.length > 128) throw invalid('Use a valid email and a password of 10–128 characters.');
           if (activeLogins >= 4) { page(res, 'Try again shortly', '', 429); return true; }
           activeLogins++;
           try {
@@ -2961,7 +2961,7 @@ function commerce(env = process.env) {
           const registering = url.searchParams.get('mode') === 'register';
           const names = registering ? '<div class="account-name-row"><label class="account-field">First Name<input name="first_name" type="text" name="first_name" autocomplete="given-name" maxlength="60" placeholder="First name" required></label><label class="account-field">Last Name<input name="last_name" type="text" name="last_name" autocomplete="family-name" maxlength="60" placeholder="Last name" required></label></div>' : '';
           const credentials = names + '<label class="account-field">Email Address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required></label>' +
-            '<label class="account-field">Password<input name="password" type="password" autocomplete="' + (registering ? 'new-password' : 'current-password') + '" minlength="12" maxlength="128" placeholder="At least 12 characters" required></label>' +
+            '<label class="account-field">Password<input name="password" type="password" autocomplete="' + (registering ? 'new-password' : 'current-password') + '" minlength="12" maxlength="128" placeholder="At least 10 characters" required></label>' +
             (registering ? '<label class="account-field">Confirm Password<input name="confirm_password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Repeat your password" required></label>' : '') +
             '<label class="account-password-toggle"><input type="checkbox" data-show-password> Show passwords</label>' +
             (registering ? '<label class="account-terms"><input type="checkbox" name="terms" value="yes" required> I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>.</label>' : '');
