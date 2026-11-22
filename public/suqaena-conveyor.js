@@ -1,5 +1,6 @@
 (async function(){
   const groups=[
+    {id:'suqaena-saree-track',urls:['/shop?category=Sarees&type=sarees','/shop?category=Sarees']},
     {id:'suqaena-lawn-track',urls:['/shop/unstitched/lawn','/shop?category=Embroidered%20Lawn%20and%20Chiffon']},
     {id:'suqaena-stitched-track',urls:['/shop?category=Ready-to-Wear&type=three-piece','/shop?category=Ready-to-Wear','/shop/ready-to-wear']},
     {id:'suqaena-unstitched-track',urls:['/shop/unstitched/chiffon','/shop/unstitched/lawn','/shop/unstitched/cotton','/shop/unstitched/silk','/shop?category=Unstitched%202-Piece%20and%203-Piece%20Suits']}
